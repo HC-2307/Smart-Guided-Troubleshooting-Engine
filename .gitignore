@@ -23,3 +23,9 @@ temp/
 build/
 dist/
 *.egg-info/
+kit/
+myNotes.txt
+docs/samsung/
+.claude
+claude.md
+skills-lock.json
