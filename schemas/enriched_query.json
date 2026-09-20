@@ -1,0 +1,57 @@
+{
+  "description": "Enriched representation of the user complaint after Stage 1 normalisation.",
+  "properties": {
+    "original_query": {
+      "description": "Raw user input complaint string",
+      "title": "Original Query",
+      "type": "string"
+    },
+    "technical_query": {
+      "description": "Normalized technical query representing the underlying defect",
+      "title": "Technical Query",
+      "type": "string"
+    },
+    "domain": {
+      "description": "Target hardware/software domain: battery, display, camera, performance, connectivity, audio, storage, system",
+      "title": "Domain",
+      "type": "string"
+    },
+    "issue": {
+      "description": "Concise statement of the core issue",
+      "title": "Issue",
+      "type": "string"
+    },
+    "context": {
+      "description": "Extracted situational modifiers (e.g., overheating, charging, startup)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Context",
+      "type": "array"
+    },
+    "query_variations": {
+      "description": "8 to 10 diverse register paraphrases (slang, formal, panic, brief, verbose)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Query Variations",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 1.0,
+      "description": "Extraction confidence score between 0.0 and 1.0",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "original_query",
+    "technical_query",
+    "domain",
+    "issue"
+  ],
+  "title": "EnrichedQuery",
+  "type": "object"
+}

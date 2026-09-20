@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-09-20T17:21:43Z",
+  "total_queries": 20,
+  "schema_pass_rate_pct": 100.0,
+  "latency_metrics_ms": {
+    "mean": 0.64,
+    "median": 0.38,
+    "p95": 4.91,
+    "min": 0.28,
+    "max": 4.91
+  },
+  "description_word_counts": {
+    "min": 52,
+    "max": 56,
+    "all_in_50_to_70": true
+  },
+  "critical_ordering_compliance_pct": 100.0,
+  "zero_url_leakage_pct": 100.0
+}
