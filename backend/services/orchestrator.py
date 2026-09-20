@@ -1,19 +1,7 @@
-def call_m1(query: str):
-    return {
-        "goal": "Troubleshooting",
-        "title": "Battery draining quickly",
-        "scope": "Battery",
-        "actions": [
-            {
-                "step": 1,
-                "actionName": "Check battery usage",
-                "description": "Review applications consuming battery.",
-                "category": "standard"
-            }
-        ]
-    }
+from backend.services.query_processor import process_query
+
 
 def troubleshoot(query: str):
-    m1_result = call_m1(query)
+    result = process_query(query)
 
-    return m1_result
+    return result
