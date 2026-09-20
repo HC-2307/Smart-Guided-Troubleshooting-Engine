@@ -68,3 +68,4 @@ class Goal(BaseModel):
 
 class TroubleshootResponse(BaseModel):  # define the schema of response
     contexts: List[Goal] = []
+    fallback: Optional[str] = None
