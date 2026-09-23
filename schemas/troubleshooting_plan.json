@@ -1,0 +1,273 @@
+{
+  "$defs": {
+    "Action": {
+      "properties": {
+        "actionName": {
+          "title": "Actionname",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "stepGroups": {
+          "items": {
+            "$ref": "#/$defs/StepGroup"
+          },
+          "title": "Stepgroups",
+          "type": "array"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "manual"
+        }
+      },
+      "required": [
+        "actionName",
+        "description",
+        "stepGroups"
+      ],
+      "title": "Action",
+      "type": "object"
+    },
+    "ActionCategory": {
+      "enum": [
+        "auto",
+        "manual",
+        "critical"
+      ],
+      "title": "ActionCategory",
+      "type": "string"
+    },
+    "Condition": {
+      "enum": [
+        "greater",
+        "equal",
+        "less"
+      ],
+      "title": "Condition",
+      "type": "string"
+    },
+    "Deeplink": {
+      "properties": {
+        "deeplink": {
+          "title": "Deeplink",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "",
+          "title": "Message"
+        },
+        "classes": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classes"
+        },
+        "originalType": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Originaltype"
+        }
+      },
+      "required": [
+        "deeplink",
+        "description"
+      ],
+      "title": "Deeplink",
+      "type": "object"
+    },
+    "Goal": {
+      "properties": {
+        "goal": {
+          "title": "Goal",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "goal",
+        "title",
+        "actions",
+        "score"
+      ],
+      "title": "Goal",
+      "type": "object"
+    },
+    "ResultTypes": {
+      "enum": [
+        "boolean",
+        "integer",
+        "str",
+        "float"
+      ],
+      "title": "ResultTypes",
+      "type": "string"
+    },
+    "StepGroup": {
+      "properties": {
+        "steps": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Steps",
+          "type": "array"
+        },
+        "validationDeeplink": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ValidationDeepLink"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "actionableDeeplink": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Deeplink"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "title": "StepGroup",
+      "type": "object"
+    },
+    "ValidationDeepLink": {
+      "properties": {
+        "deeplink": {
+          "title": "Deeplink",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "resultType": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultTypes"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "deeplink",
+        "key"
+      ],
+      "title": "ValidationDeepLink",
+      "type": "object"
+    }
+  },
+  "description": "Troubleshooting plan returned by M1 containing contexts (list of Goal objects).",
+  "properties": {
+    "contexts": {
+      "items": {
+        "$ref": "#/$defs/Goal"
+      },
+      "title": "Contexts",
+      "type": "array"
+    },
+    "query_variations": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Query Variations"
+    }
+  },
+  "title": "TroubleshootingPlan",
+  "type": "object"
+}
