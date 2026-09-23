@@ -24,3 +24,9 @@ build/
 dist/
 *.egg-info/
 student_kit/
+kit/
+docs/samsung/
+docs/architechture.md
+.claude
+claude.md
+skills-lock.json

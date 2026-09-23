@@ -7,6 +7,7 @@ from backend.schemas.troubleshooting_plan import (
     StepGroup,
     TroubleshootingPlan,
 )
+from backend.schemas.troubleshoot import TroubleshootRequest, TroubleshootResponse
 
 __all__ = [
     "EnrichedQuery",
@@ -15,4 +16,6 @@ __all__ = [
     "Action",
     "StepGroup",
     "ActionCategory",
+    "TroubleshootRequest",
+    "TroubleshootResponse",
 ]
