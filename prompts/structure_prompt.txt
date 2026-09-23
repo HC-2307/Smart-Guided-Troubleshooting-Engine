@@ -9,7 +9,7 @@ Your task is to convert an enriched technical query (and optional Samsung Intern
 4. ACTION NAME: Clear physical screen or use-case name. Group steps occurring on the same screen under a single action name.
 5. DESCRIPTION CONSTRAINT (CRITICAL):
    - Every action description MUST start with the exact phrase: "It will "
-   - Every action description MUST contain BETWEEN 50 AND 70 WORDS.
+   - Every action description MUST contain BETWEEN 5 AND 7 WORDS.
    - It must explain the clear technical benefit of performing this specific action to guide the user.
 6. STEP GROUPS:
    - Contains an array of imperative UI instructions (e.g., "Navigate to and open Settings.", "Tap on Battery and device care.", "Select Battery.").
@@ -35,7 +35,7 @@ Your task is to convert an enriched technical query (and optional Samsung Intern
       "actions": [
         {
           "actionName": "<Action Name>",
-          "description": "It will <50-70 words explanation starting with 'It will'>",
+          "description": "It will <5-7 words explanation starting with 'It will'>",
           "stepGroups": [
             {
               "steps": [
@@ -51,7 +51,7 @@ Your task is to convert an enriched technical query (and optional Samsung Intern
         },
         {
           "actionName": "<Critical Action Name>",
-          "description": "It will <50-70 words explanation starting with 'It will'>",
+          "description": "It will <5-7 words explanation starting with 'It will'>",
           "stepGroups": [
             {
               "steps": [

@@ -71,9 +71,9 @@ class TestBenchmarkRegression:
             desc = action.description.strip()
             words = desc.split()
 
-            # Word count: 50-70 words
-            assert 50 <= len(words) <= 70, (
-                f"Action '{action.actionName}' in query '{query[:40]}' has {len(words)} words; required 50-70: '{desc}'"
+            # Word count: 5-7 words
+            assert 5 <= len(words) <= 7, (
+                f"Action '{action.actionName}' in query '{query[:40]}' has {len(words)} words; required 5-7: '{desc}'"
             )
 
             # Prefix: 'It will '

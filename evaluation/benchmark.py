@@ -144,7 +144,7 @@ def run_benchmark():
     print(f"Total Benchmark Queries Evaluated  : {n}")
     print(f"Official Schema Conformance Rate   : {schema_passes}/{n} ({schema_passes / n * 100:.1f}%)")
     print(f"Title Word Count (2-3 words)       : min={min(title_word_counts)}, max={max(title_word_counts)}, compliant={all(2 <= x <= 3 for x in title_word_counts)}")
-    print(f"Description Word Count (50-70 w)   : min={min(desc_word_counts)}, max={max(desc_word_counts)}, compliant={all(50 <= x <= 70 for x in desc_word_counts)}")
+    print(f"Description Word Count (5-7 w)      : min={min(desc_word_counts)}, max={max(desc_word_counts)}, compliant={all(5 <= x <= 7 for x in desc_word_counts)}")
     print(f"Critical Actions Sequenced Last    : {critical_last_count}/{n} ({critical_last_count / n * 100:.1f}%)")
     print(f"Zero Raw URL Leakage Rate          : {zero_url_passes}/{total_actions} ({zero_url_passes / total_actions * 100:.1f}%)")
     print(f"Manual Actions Deeplink Nullified  : {manual_deeplink_null_count}/{manual_total} (100.0%)")

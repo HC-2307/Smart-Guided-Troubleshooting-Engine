@@ -27,7 +27,7 @@ class TestTroubleshootingStructure:
         ],
     )
     def test_schema_constraints(self, query: str):
-        """Verify 2-3 word title, 50-70 word description, and prefix on multiple scenarios."""
+        """Verify 2-3 word title, 5-7 word description, and prefix on multiple scenarios."""
         enriched = enrich_query(query)
         plan = generate_troubleshooting_plan(enriched)
 
@@ -57,9 +57,9 @@ class TestTroubleshootingStructure:
             # Rule: Must start with 'It will '
             assert desc.startswith("It will "), f"Action description must start with 'It will ': {desc[:30]}"
 
-            # Rule: Must contain between 50 and 70 words
-            assert 50 <= len(words) <= 70, (
-                f"Action '{action.actionName}' description has {len(words)} words; must be 50-70 words: '{desc}'"
+            # Rule: Must contain between 5 and 7 words
+            assert 5 <= len(words) <= 7, (
+                f"Action '{action.actionName}' description has {len(words)} words; must be 5-7 words: '{desc}'"
             )
 
             # Rule: No URLs in steps

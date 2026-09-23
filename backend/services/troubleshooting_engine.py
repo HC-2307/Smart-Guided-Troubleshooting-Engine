@@ -107,8 +107,16 @@ def format_title(raw_title: str, domain: str) -> str:
     return fallback_titles.get(domain, "Device troubleshooting plan")
 
 
+_TRAILING_STOPWORDS = {
+    "a", "an", "the", "and", "or", "to", "for", "of", "in", "on", "at", "by",
+    "from", "with", "which", "that", "will", "is", "are", "your", "you",
+    "between", "into", "onto", "through", "during", "before", "after",
+    "about", "over", "under", "without", "within", "across",
+}
+
+
 def format_action_description(raw_desc: str, action_name: str, domain: str) -> str:
-    """Ensure action description starts with 'It will ' and contains strictly 50 to 70 words."""
+    """Ensure action description starts with 'It will ' and contains 5 to 7 words."""
     text = (raw_desc or "").strip()
 
     # Guarantee prefix: 'It will '
@@ -123,38 +131,27 @@ def format_action_description(raw_desc: str, action_name: str, domain: str) -> s
             rest = text[len(first_word):]
             text = f"It will allow you to {first_word.lower()}{rest}"
         else:
-            text = f"It will allow you to configure and verify {action_name.lower()} on your Samsung Galaxy device."
+            text = f"It will check {action_name.lower()} settings."
 
-    words = text.split()
+    text = text.rstrip(".")
+    words = [w.rstrip(",") for w in text.split()]
 
-    # Contextual padding sentences to reach 50-70 words cleanly
-    padding_blocks = [
-        "This diagnostic step is essential for isolating transient software conflicts from permanent hardware defects on your Galaxy device.",
-        "Executing this action maintains complete data integrity and system security throughout the guided troubleshooting process.",
-        "Certified Samsung technicians recommend completing this verification step to restore standard operational performance and ensure device stability.",
-        "Performing this procedure ensures accurate diagnostics and prevents unneeded component replacements or factory resets."
-    ]
+    # Trim to 7 words if the source text ran long, then drop a dangling
+    # trailing preposition/conjunction/article so the phrase still reads
+    # as a complete clause instead of cutting off mid-thought.
+    if len(words) > 7:
+        words = words[:7]
+        while len(words) > 5 and words[-1].lower() in _TRAILING_STOPWORDS:
+            words.pop()
 
+    # Pad to 5 words minimum without adding new claims beyond the action itself
+    filler = ["and", "verify", "current", "device", "settings"]
     pad_index = 0
-    while len(words) < 50 and pad_index < len(padding_blocks):
-        text = text.rstrip(".") + ". " + padding_blocks[pad_index]
-        words = text.split()
+    while len(words) < 5 and pad_index < len(filler):
+        words.append(filler[pad_index])
         pad_index += 1
 
-    # If still under 50 words, add extra clause
-    while len(words) < 50:
-        text = text.rstrip(".") + " while maintaining optimal device performance and security."
-        words = text.split()
-
-    # If over 70 words, trim to 60 words and end with a clean period
-    if len(words) > 70:
-        words = words[:60]
-        text = " ".join(words)
-        if not text.endswith("."):
-            text += "."
-        words = text.split()
-
-    return text
+    return " ".join(words) + "."
 
 
 def clean_steps(steps: List[str]) -> List[str]:
