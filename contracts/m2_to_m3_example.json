@@ -1,0 +1,10 @@
+{
+  "step": 1,
+  "actionName": "Check battery usage",
+  "description": "It will help identify applications consuming battery power.",
+  "category": "auto",
+  "catalogId": "DL-XXXX",
+  "actionableDeeplink": "bixby://masked/act/...",
+  "resolutionStrategy": "keyword",
+  "resolutionScore": 0.81
+}
