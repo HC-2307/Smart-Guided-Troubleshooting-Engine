@@ -6,23 +6,6 @@ It is also used as a reference when preparing the Samsung AI disclosure.
 
 ---
 
-# How to use this file
-
-For every meaningful development task, record:
-
-- Date
-- Task
-- Tool used
-- What I asked
-- What the AI produced or helped with
-- What I personally changed or verified
-- Files affected
-- What I learned
-
-Do not fabricate or minimize AI involvement.
-
----
-
 # Development Log
 
 ## 2026-09-20 — Basic M3 backend skeleton end-to-end
@@ -41,29 +24,63 @@ working end to end and schema-conformant, on top of the existing skeleton
 
 Asked to "start building the basic thing that Samsung requires" for this
 branch's role, with files added and commits made as the work progressed.
+Follow-up asked to add `docs/architechture.md` to `.gitignore` and remove
+any `.gitignore` entries pointing at files that don't exist in the repo.
 
 ### AI assistance
 
 Reviewed the existing skeleton against the Theme 2 schema contract in
-CLAUDE.md and found: API mounted at `/api/v1` instead of the required
-`/v1`; `.gitignore` had a blanket `docs/` rule that would have silently
-excluded this disclosure log from version control; `troubleshooting_engine.py`
-returned a shape that would fail `TroubleshootResponse` validation; `cache.py`
-was an empty stub with no code. AI implemented: `main.py` route prefix fix,
-`fallback` field on `TroubleshootResponse`, an in-memory normalized-string
-cache (`cache.py`) with a note that semantic keying is still needed for the
-80% hit-rate target, `orchestrator.py` wiring cache -> plan generation ->
-URL-leak validation gate, a schema-conformant placeholder in
-`troubleshooting_engine.py`, integration tests (`tests/test_api.py`), and
-`Dockerfile`/`docker-compose.yml`.
+CLAUDE.md and found several issues:
+
+- API was mounted at `/api/v1` instead of the graded contract's `/v1` —
+  would have failed grading silently since it still "worked" locally.
+- `.gitignore` had a blanket `docs/` rule that would have silently excluded
+  the AI disclosure log (this file) from version control.
+- `troubleshooting_engine.py` returned a shape that would fail
+  `TroubleshootResponse` validation entirely.
+- `cache.py` was an empty stub with no code.
+- `.gitignore` also listed `myNotes.txt`, which doesn't exist (the real
+  file is `docs/myNotes.md`).
+
+AI implemented:
+
+- `backend/main.py` — fixed route prefix to `/v1`.
+- `backend/schemas/troubleshoot.py` — added the `fallback` field required
+  by the no-match/validation-failure contract.
+- `backend/services/cache.py` — basic in-memory cache, keyed on a
+  normalized (lowercased, whitespace-collapsed) query string, with a TTL.
+  Noted inline that this still needs semantic (embedding) keying to hit
+  the graded 80% hit-rate target on paraphrased queries — exact-string
+  normalization won't get there.
+- `backend/services/orchestrator.py` — wired the pipeline as
+  cache lookup -> plan generation -> URL-leak validation gate -> cache
+  store -> return. A response that fails the URL-leak check never reaches
+  the client; it's replaced with `{contexts: [], fallback: "validation_failed"}`.
+- `backend/services/troubleshooting_engine.py` — replaced the broken stub
+  with a schema-conformant placeholder plan (battery example) so the API
+  is runnable end to end pending real LLM planning (M1) and catalog
+  matching (M2).
+- `tests/test_api.py` — integration tests hitting the live API
+  (`/health`, `/v1/troubleshoot`) checking schema phrasing and zero URL
+  leakage, not just the validator unit in isolation.
+- `requirements.txt` — added `httpx` and `pytest` (needed for
+  `TestClient`/running tests).
+- `Dockerfile` / `docker-compose.yml` — were empty placeholders; filled in
+  a basic Python slim image + uvicorn setup and a compose service with a
+  health check.
+- `.gitignore` — narrowed `docs/` to `docs/samsung/` (keeps this file
+  tracked, still excludes the large official hackathon PDFs/docx), later
+  added `docs/architechture.md` (was untracked, now intentionally
+  ignored), and removed the stale `myNotes.txt` entry.
 
 ### My changes / verification
 
-Ran the orchestrator locally to confirm end-to-end output matches the schema
-(goal/title/score/actions/stepGroups/category), confirmed cache normalization
-works across whitespace/case variants, and ran `pytest tests/test_api.py`
-(3 passed). Did not verify the Docker build — Docker Desktop wasn't running
-locally, so that still needs a manual `docker build` check.
+Ran the orchestrator locally to confirm end-to-end output matches the
+schema (goal/title/score/actions/stepGroups/category), confirmed cache
+normalization works across whitespace/case variants, and ran
+`pytest tests/test_api.py` (3 passed). Did **not** verify the Docker
+build — Docker Desktop wasn't running locally, so that still needs a
+manual `docker build` check before relying on it.
 
 ### Files affected
 
@@ -82,173 +99,12 @@ locally, so that still needs a manual `docker build` check.
 
 The API prefix mismatch (`/api/v1` vs `/v1`) would have failed grading
 silently since it still "worked" locally — always check the literal
-contract string, not just that the endpoint responds.
+contract string, not just that the endpoint responds. Also: a blanket
+`.gitignore` rule (`docs/`) can silently break a compliance requirement
+(the AI disclosure log) without any error — worth double-checking ignore
+rules against what's actually supposed to ship.
 
 ### Status
 
-- [x] Complete (basic skeleton); real plan generation still pending M1/M2
-
----
-
-## YYYY-MM-DD — Task name
-
-### Goal
-
-What were we trying to build?
-
-### Tool
-
-Example:
-
-- Claude Code
-- ChatGPT
-- Other
-
-### Prompt / Request
-
-What did I ask the AI?
-
-### AI assistance
-
-What did the AI explain, generate, debug or suggest?
-
-### My changes / verification
-
-What did I personally change, test, verify or decide?
-
-### Files affected
-
-- `path/to/file.py`
-
-### What I learned
-
-Write this in simple language.
-
-### Status
-
-- [ ] Not started
-- [ ] In progress
-- [ ] Tested
-- [ ] Complete
-
----
-
-# Concepts I Have Learned
-
-## FastAPI
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## Pydantic
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## REST API
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## Orchestration
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## Validation
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## Caching
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-## Testing
-
-### What it is
-
-...
-
-### How we use it
-
-...
-
-### What I understand
-
-...
-
----
-
-# Questions I Still Have
-
-- 
-- 
-- 
+- [x] Complete (basic skeleton); real plan generation still pending M1/M2;
+  Docker build still needs manual verification

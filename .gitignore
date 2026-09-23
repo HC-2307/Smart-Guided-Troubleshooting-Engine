@@ -24,8 +24,8 @@ build/
 dist/
 *.egg-info/
 kit/
-myNotes.txt
 docs/samsung/
+docs/architechture.md
 .claude
 claude.md
 skills-lock.json
