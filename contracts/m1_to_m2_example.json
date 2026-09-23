@@ -1,0 +1,22 @@
+{
+  "goal": "Troubleshooting",
+  "title": "Battery Drain",
+  "scope": "Battery",
+  "actions": [
+    {
+      "step": 1,
+      "actionName": "Check battery usage",
+      "description": "It will help identify applications consuming battery power.",
+      "category": "auto",
+      "stepGroups": [
+        {
+          "steps": [
+            "Navigate to Settings.",
+            "Open Battery.",
+            "Review battery usage by application."
+          ]
+        }
+      ]
+    }
+  ]
+}
