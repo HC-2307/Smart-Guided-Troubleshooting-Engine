@@ -10,7 +10,7 @@ router = APIRouter()
 )
 
 def troubleshoot_device(request: TroubleshootRequest):
-    return troubleshoot(request.query)
+    return troubleshoot(request.query, request.siis_response)
 
 
 

@@ -4,12 +4,12 @@ from backend.services.query_processor import process_query
 from backend.services.validator import check_no_url_leakage
 
 
-def troubleshoot(query: str) -> TroubleshootResponse:
+def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootResponse:
     cached = cache.get(query)
     if cached is not None:
         return TroubleshootResponse(**cached)
 
-    plan = process_query(query)
+    plan = process_query(query, siis_response)
     response = TroubleshootResponse(**plan)
 
     # Final safety gate: never let a leaked URL reach the client, even if
