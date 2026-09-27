@@ -71,14 +71,27 @@ def test_every_delivered_deeplink_is_verbatim_from_catalog_with_matching_polarit
                     assert not (wanted and offered and wanted != offered)
 
 
-def test_enable_power_saving_no_longer_gets_disable_deeplink():
+def test_enable_power_saving_gets_the_enable_deeplink_without_m3_repair():
     telemetry.begin()
     response = troubleshoot("phone battery drains fast")
     trace = telemetry.current()
     telemetry.end()
     action = next(a for a in response.contexts[0].actions if a.actionName == "Enable Power Saving Mode")
-    assert action.stepGroups[0].actionableDeeplink is None
-    assert "TOGGLE_POLARITY_CONFLICT" in trace.validation["codes"]
+    assert action.stepGroups[0].actionableDeeplink.originalType == "onURL"
+    assert "TOGGLE_POLARITY_CONFLICT" not in trace.validation["codes"]
+
+
+def test_official_and_domain_queries_need_no_contract_repairs():
+    queries = [q.strip() for q in open("data/input.txt", encoding="utf-8") if q.strip()]
+    queries += ["Wi-Fi keeps disconnecting", "No sound from my speaker", "My storage is full", "stuck in a boot loop"]
+    for query in queries:
+        cache.clear()
+        telemetry.begin()
+        response = troubleshoot(query)
+        trace = telemetry.current()
+        telemetry.end()
+        assert response.contexts, query
+        assert trace.validation["repaired"] == 0 and trace.validation["quarantined"] == 0, (query, trace.validation)
 
 
 def test_cache_failure_does_not_break_the_request(monkeypatch):

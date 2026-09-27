@@ -11,14 +11,15 @@ the whole project is `docs/myNotes.md`.
 
 - All work is on branch **`HC_M3_research_upgrade`**, created from `main` at `f4accfc`.
   **`main` was not touched**: no commit, no merge, no push.
-- Every commit is **one line, no description body, no co-author trailer**. There are three
+- Every commit is **one line, no description body, no co-author trailer**. There are four
   commits on top of `main` (limit six):
 
   | Commit | Message |
   |---|---|
   | `e82de2f` | added guarded semantic cache, contract validator with repair, request tracing and metrics, tested unit api and integration |
   | `6a77de9` | added m3 paraphrase benchmark with dev-test split, per-config tuning and ablations, recorded results |
-  | third commit | wrote m3 research upgrade doc, report and teaching notes |
+  | `d6de7ca` | wrote m3 research upgrade doc, report and teaching notes |
+  | fourth commit | fixed m1 domain plans and descriptions, m2 toggle polarity and critical matching, m2 benchmark scenarios, tested |
 
 - Nothing was pushed to GitHub. Push the branch yourself when you're ready
   (`git push -u origin HC_M3_research_upgrade`).
@@ -137,11 +138,11 @@ and what we took from it or did differently.
 
 | Check | Result |
 |---|---|
-| Unit + integration test suite | **127 passed** (was 53). Deterministic, no network. |
+| Unit + integration test suite | **158 passed** (was 53; 127 after the upgrade, 158 after the §6 fixes). Deterministic, no network. |
 | M3 benchmark (`evaluation/benchmark_m3.py`) | Held-out paraphrase hit rate **75.0%** (old cache: 0%), **0 wrong hits**, 1/6 probe false hit. Dev: 96.4%. |
 | Guard ablation | Guards allow threshold 0.60 instead of 0.65 at zero dev false hits, giving **+10.7 points** on held-out (64.3% → 75.0%). |
 | Simulated query-specific variations | 76.8% on held-out. Labelled as a simulation. |
-| API latency (server-side) | Hit p95 **6.9 ms** (target ≤300 ms). Cold p95 **26.7 ms** (target ≤8 s). |
+| API latency (server-side) | Hit p95 **7.9 ms** (target ≤300 ms). Cold p95 **27.3 ms** (target ≤8 s). |
 | 20 official `data/input.txt` queries through the contract validator | 20/20 delivered, 0 repairs, 0 quarantines. |
 | Existing M1 benchmark (`evaluation/benchmark.py`) | Still passes: titles 2–3 words, descriptions 5–7 words, 20/20 critical last, 60/60 zero URL leakage, 40/40 manual deeplinks null. Its results file was restored afterwards so M1's recorded numbers weren't overwritten. |
 | Live system test (real `uvicorn`, real HTTP) | `/health` ok. Paraphrases hit (`X-Cache: semantic`, ~5 ms). Rear camera no longer served the front-camera entry. Mobile data didn't reuse Wi-Fi. "won't charge" didn't reuse "drains". Blank query → 422. `/v1/metrics` correct. |
@@ -168,7 +169,11 @@ and what we took from it or did differently.
 
 ---
 
-## 6. Problems found in teammates' code (not changed — for them to fix)
+## 6. Problems found in teammates' code — fixed on this branch only
+
+On 27 Sep you asked for these to be fixed on `HC_M3_research_upgrade` only. They are fixed
+here (not on `main`). Tell arav and geetika before merging, because these edits touch their
+files. The table records what was wrong; §6.1 records the fix.
 
 | Owner | File | Problem | Evidence |
 |---|---|---|---|
@@ -208,11 +213,31 @@ and what we took from it or did differently.
 
 ---
 
+### 6.1 What was changed
+
+| Problem | Fix | Test |
+|---|---|---|
+| M1 display fallback for connectivity/audio/storage/system | New `network`, `audio`, `storage`, `system` plans. `_plan_key()` keeps the screen plan for connectivity reports without network words (the two official Smart Switch queries). `_focus_network_actions()` keeps only the named radio. | `tests/test_domain_plans.py` |
+| M1 truncated descriptions | All 12 existing descriptions rewritten as complete 5–7 word sentences, plus the new plans' descriptions | `test_every_plan_description_is_already_a_complete_5_to_7_word_sentence` |
+| M2 Enable→Disable mismatch | `action_matcher.py`: polarity filter on candidates (on/off must agree; neutral actions can't map to `offURL`) | `tests/test_matcher.py` (5 new) |
+| M2 factory-reset page for network reset | `deeplink_resolver.py`: critical actions reject semantic-only matches | `test_critical_action_rejects_weak_semantic_match` |
+| M2 benchmark crash | `data/scenarios.json` built from `siis_responses.json`; `benchmark_m2.py` sets `sys.path` | Ran it: 20 scenarios, 1 resolved (raw complaints aren't action names, so a low resolve rate is expected) |
+| M3 Title Case capitalised "into" | Added `into/onto/over/upon` to minor words | covered by the zero-repair integration test |
+
+Not fixed, by design:
+
+- Per-domain plans are still not per-complaint ("won't charge" still gets the battery-drain
+  plan). That needs the LLM path or a much larger rule set.
+- Deterministic `query_variations` are still generic per domain. M3 filters contradictions.
+- "Check Storage Usage" resolves to "View Storage Share". The catalog has no storage-usage
+  page.
+- M2's ~190 ms matcher cost. M3 memoises it.
+
 ## 8. What's left (suggested order)
 
 1. Start Docker Desktop and run `docker compose up --build`, then hit `/health`.
-2. Ask arav to fix the `domain_plans` display fallback, and geetika to add polarity
-   preference in the matcher and fill `data/scenarios.json`.
+2. Tell arav and geetika about the §6.1 fixes to their files before any merge, so they can
+   review them.
 3. Optional research step towards 80%: a small local embedding model (e.g. an MPNet/MiniLM
    class model) as a third similarity signal, re-tuned on dev only.
 4. A Redis backend for the cache if the deployment runs more than one worker.

@@ -69,7 +69,7 @@ def entry_polarity(entry: dict) -> Optional[str]:
     return polarity(str(entry.get("message", "")))
 
 
-MINOR_WORDS = {"a", "an", "the", "and", "or", "but", "for", "nor", "of", "on", "in", "to", "at", "by", "via", "with", "from", "as"}
+MINOR_WORDS = {"a", "an", "the", "and", "or", "but", "for", "nor", "of", "on", "in", "to", "at", "by", "via", "with", "from", "as", "into", "onto", "over", "upon"}
 
 
 def _title_case(name: str) -> str:

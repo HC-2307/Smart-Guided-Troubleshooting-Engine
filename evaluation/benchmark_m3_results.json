@@ -1711,15 +1711,15 @@
   "api_latency": {
     "cold_ms": {
       "count": 27,
-      "p50": 22.839,
-      "p95": 35.248,
-      "mean": 35.096
+      "p50": 24.929,
+      "p95": 226.712,
+      "mean": 43.041
     },
     "hit_ms": {
       "count": 43,
-      "p50": 9.882,
-      "p95": 14.463,
-      "mean": 10.522
+      "p50": 11.303,
+      "p95": 16.355,
+      "mean": 11.354
     },
     "server_metrics": {
       "pipeline": {
@@ -1728,13 +1728,13 @@
         "latency_ms": {
           "hit": {
             "count": 44,
-            "p50": 4.631,
-            "p95": 6.921
+            "p50": 5.101,
+            "p95": 7.927
           },
           "cold": {
             "count": 26,
-            "p50": 17.705,
-            "p95": 26.719
+            "p50": 19.221,
+            "p95": 27.257
           }
         },
         "counters": {
@@ -1745,10 +1745,7 @@
           "cache_variation": 8,
           "cache_semantic": 36
         },
-        "validation_codes": {
-          "TOGGLE_POLARITY_CONFLICT": 5,
-          "ACTION_NAME_CASE": 3
-        },
+        "validation_codes": {},
         "est_cost_usd": 0.0
       },
       "cache": {

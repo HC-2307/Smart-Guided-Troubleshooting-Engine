@@ -69,6 +69,16 @@ class DeeplinkResolver:
             }
 
         entry = result.entry
+        if category == "critical" and result.strategy == "semantic":
+            return {
+                "resolved": False,
+                "reason": "critical_requires_confident_match",
+                "catalogId": None,
+                "actionableDeeplink": None,
+                "strategy": result.strategy,
+                "score": round(result.score, 4),
+            }
+
         if entry.get("id") == "DL-DUMMY" and not allow_dummy:
             return {
                 "resolved": False,

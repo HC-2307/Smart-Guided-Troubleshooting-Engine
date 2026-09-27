@@ -233,7 +233,7 @@ M1 has **two engines**:
 Also, today we discovered the API key in the shell has **no credits** (OpenAI answered
 `429 insufficient_quota`), so deterministic mode is what actually runs.
 
-**Weaknesses we found (for arav to fix):**
+**Weaknesses we found (now fixed on this branch; see Lesson 16):**
 
 - Wi-Fi, audio and storage complaints fall back to the **display** plan.
 - Every battery complaint gets the same "battery drain" plan, even "won't charge".
@@ -258,7 +258,7 @@ If nothing is confident, the action gets **no** deeplink. Never a made-up one. M
 - forces **manual** actions to have no deeplink,
 - moves **critical** actions to the end.
 
-**Weakness we found:** "Enable Power Saving Mode" was matched to "**Disable** Power saving",
+**Weakness we found (now fixed on this branch; see Lesson 16):** "Enable Power Saving Mode" was matched to "**Disable** Power saving",
 because the words overlap almost perfectly. The words are the same; the meaning is
 opposite. Keep this in mind for Lesson 9.
 
@@ -462,7 +462,7 @@ Other safety features:
 - clears the cache and metrics, so one test's leftovers can't make another test
   pass or fail.
 
-**Try it:** `python -m pytest -q`. You should see **127 passed**.
+**Try it:** `python -m pytest -q`. You should see **158 passed**.
 
 ---
 
@@ -507,7 +507,7 @@ How to read it:
   terminate abnormally") that share no words with the seed. A word-based method can't
   bridge that. The honest next step is a small embedding model as a third signal.
 
-**Latency (server side):** hit p95 **6.9 ms**, cold p95 **26.7 ms**. Targets are 300 ms and
+**Latency (server side):** hit p95 **7.9 ms**, cold p95 **27.3 ms**. Targets are 300 ms and
 8 s, so we're comfortably inside both.
 
 **Honesty rule we followed:**
@@ -554,7 +554,8 @@ broken part instead of throwing away the whole answer (quarantine).
 - Today's commits:
   1. the code and tests,
   2. the benchmark and results,
-  3. the documents.
+  3. the documents,
+  4. the fixes to M1/M2 problems (on this branch only, see Lesson 16).
 - Nothing is merged or pushed. When you're ready: `git push -u origin HC_M3_research_upgrade`
   and open a pull request for the team to review.
 
@@ -573,7 +574,43 @@ broken part instead of throwing away the whole answer (quarantine).
 
 ---
 
-## Lesson 16 — Glossary
+## Lesson 16 — Fixing problems at the source
+
+**Teacher:** M3's validator caught a wrong deeplink and removed it. Is that the end of the
+story?
+
+**Student:** The user is safe, so... yes?
+
+**Teacher:** Safe, but not *good*. The user now gets no button at all, when the catalog *did*
+have the right one ("Enable Power saving"). A guard at the exit is a safety net, not a
+cure. So on this branch we also fixed the causes:
+
+1. **M2 matcher: agree on direction.** Before ranking candidates, drop any catalog entry
+   whose switch direction (`onURL`/`offURL`) disagrees with the action ("Enable" ≠ off). If
+   the action has no direction ("Back Up Phone Data"), never pick an *off* switch.
+2. **M2 resolver: be stricter with scary actions.** A **critical** action (reset, wipe)
+   only gets a deeplink from an exact or keyword match, never from a vague "sort of
+   similar" guess. It had been sending "Reset Network Settings" to the factory-reset page.
+3. **M1 plans: every domain gets its own plan.** Wi-Fi, sound, storage and system problems
+   used to get the *screen* plan. Now they get their own, and the network plan only shows
+   the radio you complained about.
+4. **M1 descriptions: write short, not cut short.** A 60-word paragraph chopped to 7 words
+   gives "It will allow you to inspect." Writing a proper 6-word sentence in the first place
+   gives "It will show which apps drain battery."
+
+**How we proved it:** a new integration test runs all 20 official queries plus new domain
+probes and asserts that M3's validator made **zero repairs**. If an upstream bug comes
+back, the guard would have to repair it, and that test fails.
+
+**Careful-engineer moment:** the two official "Smart Switch + blank screen" complaints are
+classified as *connectivity*. Blindly giving every connectivity complaint the new Wi-Fi plan
+would have made those two official answers *worse*. So the network plan is used only when
+the complaint actually names a network. Always check how a fix affects the graded data
+before shipping it.
+
+---
+
+## Lesson 17 — Glossary
 
 - **API / endpoint:** a URL your program answers, e.g. `POST /v1/troubleshoot`.
 - **JSON:** text format for structured data (`{"key": "value"}`).

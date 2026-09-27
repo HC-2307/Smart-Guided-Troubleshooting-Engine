@@ -7,11 +7,14 @@ calculating deeplink accuracy.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
-from backend.services.deeplink_resolver import DeeplinkResolver
-
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from backend.services.deeplink_resolver import DeeplinkResolver
+
 CATALOG = ROOT / "data" / "deeplinks.json"
 SCENARIOS = ROOT / "data" / "scenarios.json"
 

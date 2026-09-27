@@ -226,11 +226,12 @@ What the numbers show:
 
 | Path | Server-side p50 | Server-side p95 | Spec target |
 |---|---|---|---|
-| Cache hit | 4.6 ms | **6.9 ms** | ≤300 ms |
-| Cold (full M1 → M2 → validate) | 17.7 ms | **26.7 ms** | ≤8 s |
+| Cache hit | 5.1 ms | **7.9 ms** | ≤300 ms |
+| Cold (full M1 → M2 → validate) | 19.2 ms | **27.3 ms** | ≤8 s |
 
-Client-side wall time through `TestClient` adds about 5 ms (hit p95 14.5 ms, cold p95
-35.2 ms). In a real `uvicorn` run, the first cold request of a new domain took up to 525 ms,
+Client-side wall time through `TestClient` adds about 6 ms on hits (hit p95 16.4 ms). The
+client-side cold p95 is 226.7 ms, because each new distinct plan pays one first-time M2
+resolution (~190 ms) before the memo takes over. In a real `uvicorn` run, the first cold request of a new domain took up to 525 ms,
 because M2 resolved a plan it hadn't memoised yet. That is still far under 8 s.
 
 ### 4.4 Contract audit on the 20 official `data/input.txt` queries
@@ -241,7 +242,7 @@ safety without disturbing valid output. On the live battery query it repaired
 
 ### 4.5 Tests
 
-- **127 passing**, up from 53.
+- **158 passing**, up from 53 (127 after the upgrade, plus 31 regression tests for the teammate-code fixes in §6).
 - New: `test_similarity.py` (10), `test_contract_validator.py` (27).
 - Rewritten or extended: `test_cache.py` (24), `test_api.py` (13), `test_integration.py` (11).
 - `tests/conftest.py` now strips LLM keys (opt back in with `M3_TESTS_ALLOW_LLM=1`) and
@@ -277,7 +278,32 @@ safety without disturbing valid output. On the live battery query it repaired
 
 ---
 
-## 6. References (all verified to exist, September 2026)
+## 6. Upstream fixes made on this branch
+
+The M3 validator found these problems; they are now fixed **at the source** on this branch
+only (not on `main`), so the validator no longer has to repair anything on the 20 official
+queries or on the new domain probes (a test enforces zero repairs):
+
+- **M1 plans:** connectivity, audio, storage and system complaints used to fall back to the
+  display plan. They now have their own plans. The network plan keeps only the radio the
+  user named (Wi-Fi, Bluetooth or mobile data). Connectivity reports without network words
+  (the two official Smart Switch blank-screen queries) still get the screen plan.
+- **M1 descriptions:** every action description is now a complete 5–7 word sentence (e.g.
+  "It will show which apps drain battery."), not a 50–70 word paragraph cut off mid-phrase
+  ("It will allow you to inspect.").
+- **M2 polarity:** the matcher excludes catalog entries whose `onURL`/`offURL` polarity
+  contradicts the action, and neutral actions ("Back Up Phone Data") can no longer map to a
+  Disable toggle. Power Saving now resolves to "Enable Power saving".
+- **M2 critical safety:** a critical action no longer accepts a weak semantic match.
+  "Reset Network Settings" had been linked to the *auto factory reset* page.
+- **M2 benchmark:** `data/scenarios.json` was empty. It is now built from
+  `siis_responses.json` (query + SIIS title, `expected_catalog_ids` left empty for manual
+  review), and the script sets its own import path.
+
+M3's validator stays in place as defence in depth, and the paraphrase benchmark numbers in
+§4.2 are unchanged by these fixes.
+
+## 7. References (all verified to exist, September 2026)
 
 1. F. Bang. *GPTCache: An Open-Source Semantic Cache for LLM Applications Enabling Faster Answers and Cost Savings.* NLP-OSS Workshop @ EMNLP 2023. aclanthology.org/2023.nlposs-1.24
 2. W. Gill et al. *MeanCache: User-Centric Semantic Caching for LLM Web Services.* arXiv:2403.02694; IEEE IPDPS 2025.
@@ -291,10 +317,10 @@ safety without disturbing valid output. On the live battery query it repaired
 
 ---
 
-## 7. How to reproduce
+## 8. How to reproduce
 
 ```bash
-python -m pytest -q                      # 127 tests, deterministic
+python -m pytest -q                      # 158 tests, deterministic
 python evaluation/benchmark_m3.py        # writes evaluation/benchmark_m3_results.json
 uvicorn backend.main:app --port 8000     # then GET /health, POST /v1/troubleshoot, GET /v1/metrics
 ```

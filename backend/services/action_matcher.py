@@ -36,6 +36,24 @@ ALIASES = {
 }
 
 
+ON_PATTERN = re.compile(r"\b(enable|turn on|switch on|activate|allow|show)\b", re.IGNORECASE)
+OFF_PATTERN = re.compile(r"\b(disable|turn off|switch off|deactivate|block|hide|remove)\b", re.IGNORECASE)
+
+
+def action_polarity(text: str) -> str | None:
+    on, off = bool(ON_PATTERN.search(text or "")), bool(OFF_PATTERN.search(text or ""))
+    return "on" if on and not off else "off" if off and not on else None
+
+
+def entry_polarity(entry: dict[str, Any]) -> str | None:
+    kind = entry.get("originalType")
+    if kind == "onURL":
+        return "on"
+    if kind == "offURL":
+        return "off"
+    return action_polarity(str(entry.get("message", "")))
+
+
 def normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text or "").lower()
     text = text.replace("_", " ").replace("-", " ")
@@ -141,8 +159,16 @@ class ActionMatcher:
             return MatchResult(ranked[0], "exact+context", score, ranked[:5])
 
         # 2) Keyword/token scoring. Score all candidates and retain useful evidence.
+        wanted = action_polarity(action_name)
+        allowed = [
+            i for i, e in enumerate(self.catalog)
+            if entry_polarity(e) is None
+            or entry_polarity(e) == wanted
+            or (wanted is None and entry_polarity(e) == "on")
+        ]
+
         ranked_keyword = []
-        for e in self.catalog:
+        for e in (self.catalog[i] for i in allowed):
             text = self.searchable_text(e)
             token_score = _token_score(query, text)
             seq = _sequence_score(action_name, str(e.get("message", "")))
@@ -161,8 +187,8 @@ class ActionMatcher:
         # 3) TF-IDF cosine fallback.
         qvec = self._vector(tokens(query))
         ranked_semantic = [
-            (self._cosine(qvec, vec), entry)
-            for vec, entry in zip(self._vectors, self.catalog)
+            (self._cosine(qvec, self._vectors[i]), self.catalog[i])
+            for i in allowed
         ]
         ranked_semantic.sort(key=lambda x: x[0], reverse=True)
         sem_score, sem_entry = ranked_semantic[0]

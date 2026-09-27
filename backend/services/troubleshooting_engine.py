@@ -204,7 +204,34 @@ def reorder_actions_critical_last(actions: List[Dict[str, Any]]) -> List[Dict[st
     return standard_actions + critical_actions
 
 
-def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[str, Any]:
+NETWORK_WORDS = ("wifi", "wi-fi", "bluetooth", "internet", "signal", "mobile data", "cellular", "network", "hotspot", "disconnect")
+PLAN_KEYS = ("battery", "display", "camera", "performance", "audio", "storage", "system")
+
+
+def _plan_key(domain: str, original_query: str) -> str:
+    if domain == "connectivity":
+        query = (original_query or "").lower()
+        return "network" if any(word in query for word in NETWORK_WORDS) else "display"
+    return domain if domain in PLAN_KEYS else "display"
+
+
+RADIO_ACTIONS = {
+    "wifi": ("View WiFi Settings", ("wifi", "wi-fi", "internet", "hotspot")),
+    "bluetooth": ("View Bluetooth", ("bluetooth", "earbuds", "buds", "headphones", "speaker")),
+    "mobile": ("View Mobile Networks", ("mobile data", "cellular", "signal", "sim", "4g", "5g", "lte")),
+}
+
+
+def _focus_network_actions(actions: List[Dict[str, Any]], original_query: str) -> List[Dict[str, Any]]:
+    query = (original_query or "").lower()
+    named = {radio for radio, (_, words) in RADIO_ACTIONS.items() if any(w in query for w in words)}
+    if not named:
+        return actions
+    dropped = {RADIO_ACTIONS[radio][0] for radio in RADIO_ACTIONS if radio not in named}
+    return [a for a in actions if a["actionName"] not in dropped]
+
+
+def _build_domain_plan(domain: str, issue: str, technical_query: str, original_query: str = "") -> Dict[str, Any]:
     """Generate grounded, pre-validated troubleshooting actions based on domain."""
     domain_plans = {
         "battery": {
@@ -213,7 +240,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
             "actions": [
                 {
                     "actionName": "Check Battery Usage",
-                    "description": "It will allow you to inspect which applications and background background services consume abnormal battery percentages on your Samsung Galaxy device. Reviewing detailed discharge statistics assists you in pinpointing energy-draining apps, configuring background usage limits, and optimizing screen timeout durations to significantly extend daily operating time between recharges without compromising key smartphone functionality.",
+                    "description": "It will show which apps drain battery.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -229,7 +256,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Enable Power Saving Mode",
-                    "description": "It will reduce background network synchronization, limit central processor performance to seventy percent, and disable always-on display features to conserve critical remaining battery reserves. Activating this power-conserving profile extends usable device operational life during emergencies and helps evaluate whether unconstrained background data activity was the primary cause of sudden battery discharge.",
+                    "description": "It will reduce background power consumption.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -245,7 +272,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Restart Device in Safe Mode",
-                    "description": "It will restart your Galaxy phone with all downloaded third-party applications completely disabled, running only authentic pre-installed Samsung system services. This diagnostic environment enables you to verify whether recently installed apps or malware are causing severe thermal heating and rapid power drain, confirming whether a full software uninstallation is necessary.",
+                    "description": "It will reboot with third-party apps disabled.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -267,7 +294,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
             "actions": [
                 {
                     "actionName": "Back Up Phone Data",
-                    "description": "It will facilitate secure data transfer between your devices by backing up essential contacts, photos, and system preferences to your Samsung Cloud storage. This preliminary safeguard guarantees that no critical personal information or application configuration is lost should your device undergo unexpected shutdowns, display replacements, or complete system resets during the upcoming troubleshooting procedure.",
+                    "description": "It will back up your personal data.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -283,7 +310,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Inspect Hardware and Liquid Indicator",
-                    "description": "It will guide you through inspecting the physical glass surface, USB charging port, and SIM tray Liquid Damage Indicator for signs of moisture intrusion. Evaluating physical integrity verifies whether digitizer blanking or flickering stems from internal moisture corrosion, cracked display substrates, or foreign debris lodged inside the connector pins before hardware servicing.",
+                    "description": "It will check for liquid damage signs.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -299,7 +326,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Schedule Screen Repair Service",
-                    "description": "It will help you locate the nearest authorized Samsung service center and schedule an inspection with certified hardware technicians. Given that physical display cracks and persistent hardware flickering cannot be resolved through software adjustments alone, obtaining professional service ensures your device receives genuine replacement parts without risking further damage to the internal battery or logic board.",
+                    "description": "It will arrange a professional screen repair.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -320,7 +347,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
             "actions": [
                 {
                     "actionName": "Clear Camera App Cache",
-                    "description": "It will erase temporary cache files, corrupted image buffer allocations, and misconfigured preference states within the native Samsung Camera application without deleting any personal pictures. Refreshing the camera application data partition restores default sensor initialization parameters, clearing software deadlock states that frequently inhibit proper optical autofocus and focal tracking during photography.",
+                    "description": "It will clear corrupted camera cache files.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -336,7 +363,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Clean Camera Lens Surface",
-                    "description": "It will guide you to inspect and carefully clean the exterior camera glass element and laser autofocus sensor window using a dry microfiber cloth. Removing smudges, adhesive residues, or protective skin obstructions ensures the time-of-flight optical sensor can emit and receive infrared distance signals without refraction errors blurring your captures.",
+                    "description": "It will remove smudges blocking the lens.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -351,7 +378,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Reset Camera Settings",
-                    "description": "It will revert all custom photo capture modes, video bitrate selections, optical tracking preferences, and shooting method configurations back to factory defaults. Resetting internal camera parameters eliminates conflicting experimental settings or corrupted scene optimizer profiles that could be preventing the camera voice coil motor from achieving crisp focus on close subjects.",
+                    "description": "It will restore default camera settings.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -373,7 +400,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
             "actions": [
                 {
                     "actionName": "Optimize Device Storage and Memory",
-                    "description": "It will execute Samsung Device Care optimization to scan for rogue background processes, purge inactive memory caches, and reclaim internal RAM resources on your phone. Performing this standard routine immediately frees up processing cycles for active foreground applications, eliminating noticeable touch latency and preventing application freezing without altering personal user files.",
+                    "description": "It will free up memory and storage.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -389,7 +416,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Check Software Updates",
-                    "description": "It will connect your device to official Samsung firmware servers to search for and download the latest One UI maintenance releases and security patches. Installing updated system software resolves known kernel performance regressions, updates touch digitizer firmware drivers, and optimizes thread scheduling across all application components to ensure maximum responsiveness.",
+                    "description": "It will install the latest system software.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -405,7 +432,7 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                 },
                 {
                     "actionName": "Reboot into Safe Mode",
-                    "description": "It will restart your phone into diagnostic Safe Mode, isolating all downloaded third-party apps, custom launchers, and background services from running. This test confirms whether severe UI lag and touchscreen delays stem from conflicting user-installed applications, allowing you to safely uninstall culprit software before considering more invasive system restoration measures.",
+                    "description": "It will reboot with third-party apps disabled.",
                     "stepGroups": [
                         {
                             "steps": [
@@ -420,10 +447,192 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str) -> Dict[st
                     "category": "critical"
                 }
             ]
-        }
+        },
+        "network": {
+            "goal": "Follow these steps to perform this Network Troubleshooting",
+            "title": "Network connection issue",
+            "actions": [
+                {
+                    "actionName": "View WiFi Settings",
+                    "description": "It will reconnect your phone to Wi-Fi.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Connections.",
+                        "Tap Wi-Fi.",
+                        "Tap the Wi-Fi switch to turn it off.",
+                        "Tap the Wi-Fi switch again to turn it on.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "View Bluetooth",
+                    "description": "It will reconnect your paired Bluetooth devices.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Connections.",
+                        "Tap Bluetooth.",
+                        "Tap the paired device name to reconnect it.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Disable Airplane Mode",
+                    "description": "It will restore all wireless connections.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Connections.",
+                        "Toggle Airplane mode to Off.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "View Mobile Networks",
+                    "description": "It will review your mobile data settings.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Connections.",
+                        "Tap Mobile networks.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Reset Network Settings",
+                    "description": "It will restore default network connection settings.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap General management.",
+                        "Tap Reset.",
+                        "Tap Reset network settings.",
+                        "Tap Reset settings to confirm.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "critical",
+                },
+            ]
+        },
+        "audio": {
+            "goal": "Follow these steps to perform this Audio Troubleshooting",
+            "title": "Speaker sound issue",
+            "actions": [
+                {
+                    "actionName": "View Volume Settings",
+                    "description": "It will confirm media and ringtone volume.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Sounds and vibration.",
+                        "Tap Volume.",
+                        "Drag the Media slider to the right.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "View Sound Settings",
+                    "description": "It will switch off silent or vibrate.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Sounds and vibration.",
+                        "Select Sound as the sound mode.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Clean Speaker Grille",
+                    "description": "It will clear debris blocking the speaker.",
+                    "stepGroups": [{"steps": [
+                        "Power off the device.",
+                        "Gently brush the speaker grille with a soft dry brush.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "manual",
+                },
+                {
+                    "actionName": "Schedule Speaker Repair Service",
+                    "description": "It will arrange a professional speaker inspection.",
+                    "stepGroups": [{"steps": [
+                        "Contact Samsung Support or visit an authorized Samsung Service Center.",
+                        "Describe the missing or distorted sound to initiate service.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "manual",
+                },
+            ]
+        },
+        "storage": {
+            "goal": "Follow these steps to perform this Storage Troubleshooting",
+            "title": "Storage space full",
+            "actions": [
+                {
+                    "actionName": "Check Storage Usage",
+                    "description": "It will show what uses storage space.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Battery and device care.",
+                        "Tap Storage.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Clear App Cache",
+                    "description": "It will remove temporary app cache files.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap Apps.",
+                        "Select the app using the most space.",
+                        "Tap Storage.",
+                        "Tap Clear cache.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Back Up Phone Data",
+                    "description": "It will back up your personal data.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap on Accounts and backup.",
+                        "Select Back up data to secure your personal files.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+            ]
+        },
+        "system": {
+            "goal": "Follow these steps to perform this System Troubleshooting",
+            "title": "System startup failure",
+            "actions": [
+                {
+                    "actionName": "Check Software Updates",
+                    "description": "It will install the latest system software.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to Settings.",
+                        "Scroll down and tap Software update.",
+                        "Select Download and install.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
+                    "actionName": "Force Restart Device",
+                    "description": "It will force the device to reboot.",
+                    "stepGroups": [{"steps": [
+                        "Press and hold the Side key and Volume down key together.",
+                        "Release both keys when the Samsung logo appears.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "manual",
+                },
+                {
+                    "actionName": "Reboot into Safe Mode",
+                    "description": "It will reboot with third-party apps disabled.",
+                    "stepGroups": [{"steps": [
+                        "Hold Power and Volume down keys simultaneously.",
+                        "Long-press the Power off prompt on display.",
+                        "Tap Safe mode to reboot into diagnostic state.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "critical",
+                },
+            ]
+        },
     }
 
-    base = domain_plans.get(domain, domain_plans["display"])
+    key = _plan_key(domain, original_query)
+    base = domain_plans[key]
+    if key == "network":
+        base = dict(base, actions=_focus_network_actions(base["actions"], original_query))
     return {
         "contexts": [
             {
@@ -514,12 +723,12 @@ def generate_troubleshooting_plan(
 
     # 3. Fallback to domain-specific grounded plan
     if not raw_plan:
-        raw_plan = _build_domain_plan(domain, issue, technical_query)
+        raw_plan = _build_domain_plan(domain, issue, technical_query, orig_query)
 
     # 4. Post-processing Sanitization & Strict Constraint Enforcement
     contexts = raw_plan.get("contexts", [])
     if not contexts:
-        contexts = _build_domain_plan(domain, issue, technical_query)["contexts"]
+        contexts = _build_domain_plan(domain, issue, technical_query, orig_query)["contexts"]
 
     sanitized_contexts = []
     for ctx in contexts:
