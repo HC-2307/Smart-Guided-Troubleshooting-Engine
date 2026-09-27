@@ -1,21 +1,55 @@
+import logging
+
 from backend.schemas.troubleshoot import TroubleshootResponse
-from backend.services import cache
+from backend.services import cache, telemetry
+from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
 from backend.services.validator import check_no_url_leakage
 
+logger = logging.getLogger("m3")
+
+
+def _cache_lookup(query: str, trace: telemetry.RequestTrace):
+    try:
+        with telemetry.stage("cache_lookup"):
+            return cache.lookup(query)
+    except Exception as exc:
+        trace.errors.append(f"cache_lookup: {exc!r}")
+        logger.warning("request %s cache lookup failed: %r", trace.request_id, exc)
+        return None
+
+
+def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.RequestTrace) -> None:
+    try:
+        with telemetry.stage("cache_store"):
+            cache.store(query, response.model_dump(), response.query_variations)
+    except Exception as exc:
+        trace.errors.append(f"cache_store: {exc!r}")
+        logger.warning("request %s cache store failed: %r", trace.request_id, exc)
+
 
 def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootResponse:
-    cached = cache.get(query)
-    if cached is not None:
-        return TroubleshootResponse(**cached)
+    trace = telemetry.current()
 
-    plan = process_query(query, siis_response)
-    response = TroubleshootResponse(**plan)
+    hit = _cache_lookup(query, trace) if siis_response is None else None
+    if hit is not None and hit.response is not None:
+        trace.cache_tier, trace.cache_score = hit.tier, hit.score
+        return TroubleshootResponse(**hit.response)
 
-    # Final safety gate: never let a leaked URL reach the client, even if
-    # something upstream (LLM plan or catalog match) slipped one in.
+    with telemetry.stage("pipeline"):
+        plan = process_query(query, siis_response)
+    if telemetry.llm_provider_configured():
+        trace.llm_calls = 2
+
+    with telemetry.stage("contract_validation"):
+        repaired, report = validate_and_repair(plan)
+    trace.validation = report.summary()
+    response = TroubleshootResponse(**repaired)
+
     if check_no_url_leakage(response):
         response = TroubleshootResponse(contexts=[], fallback="validation_failed")
 
-    cache.set(query, response.model_dump())
+    trace.fallback = response.fallback
+    if response.contexts and response.fallback is None:
+        _cache_store(query, response, trace)
     return response

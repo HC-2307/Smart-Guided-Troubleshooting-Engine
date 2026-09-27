@@ -1,4 +1,5 @@
-from backend.services import cache
+from backend.services import cache, orchestrator, query_processor, telemetry
+from backend.services.contract_validator import catalog_by_deeplink, entry_polarity, polarity
 from backend.services.orchestrator import troubleshoot
 
 
@@ -19,12 +20,21 @@ def test_orchestrator_runs_real_m1_to_m2_pipeline_end_to_end():
 
 def test_orchestrator_result_is_served_from_cache_on_repeat_query():
     query = "wifi keeps disconnecting on my galaxy"
-    cache.get(query)  # ensure a clean slate for this key isn't required; cache.set overwrites
     first = troubleshoot(query)
     cached_entry = cache.get(query)
 
     assert cached_entry is not None
     assert cached_entry == first.model_dump()
+
+
+def test_paraphrase_hits_cache_without_rerunning_pipeline(monkeypatch):
+    troubleshoot("My phone battery drains really fast")
+    monkeypatch.setattr(orchestrator, "process_query", lambda *_: (_ for _ in ()).throw(AssertionError("cold path")))
+    telemetry.begin()
+    response = troubleshoot("Why does my Samsung battery die so quickly?")
+    assert response.contexts
+    assert telemetry.current().cache_tier in ("semantic", "variation")
+    telemetry.end()
 
 
 def test_critical_actions_are_ordered_last_after_m2_resolution():
@@ -33,9 +43,8 @@ def test_critical_actions_are_ordered_last_after_m2_resolution():
 
     categories = [action.category for action in goal.actions]
     if "critical" in categories:
-        assert categories[-1] == "critical" or all(
-            c != "critical" for c in categories[categories.index("critical") + 1:]
-        )
+        first_critical = categories.index("critical")
+        assert all(c == "critical" for c in categories[first_critical:])
 
 
 def test_manual_actions_never_carry_actionable_deeplink():
@@ -45,3 +54,71 @@ def test_manual_actions_never_carry_actionable_deeplink():
             if action.category == "manual":
                 for group in action.stepGroups:
                     assert group.actionableDeeplink is None
+
+
+def test_every_delivered_deeplink_is_verbatim_from_catalog_with_matching_polarity():
+    catalog = catalog_by_deeplink()
+    for query in ("phone battery drains fast", "screen flickers", "wifi keeps disconnecting", "camera is blurry"):
+        for goal in troubleshoot(query).contexts:
+            for action in goal.actions:
+                for group in action.stepGroups:
+                    link = group.actionableDeeplink
+                    if link is None:
+                        continue
+                    entry = catalog[link.deeplink]
+                    assert link.description == entry["description"]
+                    wanted, offered = polarity(action.actionName), entry_polarity(entry)
+                    assert not (wanted and offered and wanted != offered)
+
+
+def test_enable_power_saving_no_longer_gets_disable_deeplink():
+    telemetry.begin()
+    response = troubleshoot("phone battery drains fast")
+    trace = telemetry.current()
+    telemetry.end()
+    action = next(a for a in response.contexts[0].actions if a.actionName == "Enable Power Saving Mode")
+    assert action.stepGroups[0].actionableDeeplink is None
+    assert "TOGGLE_POLARITY_CONFLICT" in trace.validation["codes"]
+
+
+def test_cache_failure_does_not_break_the_request(monkeypatch):
+    def broken(*_args, **_kwargs):
+        raise ConnectionError("cache down")
+
+    monkeypatch.setattr(cache, "lookup", broken)
+    monkeypatch.setattr(cache, "store", broken)
+    telemetry.begin()
+    response = troubleshoot("screen keeps flickering")
+    trace = telemetry.current()
+    telemetry.end()
+    assert response.contexts
+    assert any("cache_lookup" in e for e in trace.errors)
+    assert any("cache_store" in e for e in trace.errors)
+
+
+def test_siis_context_bypasses_cache():
+    troubleshoot("phone battery drains fast")
+    telemetry.begin()
+    troubleshoot("phone battery drains fast", {"title": "Battery", "content": "Check battery usage."})
+    assert telemetry.current().cache_tier == "miss"
+    telemetry.end()
+
+
+def test_failed_responses_are_not_cached(monkeypatch):
+    monkeypatch.setattr(orchestrator, "process_query", lambda *_: {"contexts": [], "fallback": "no_match"})
+    response = troubleshoot("totally unknown request about quantum flux")
+    assert response.fallback == "no_match"
+    assert cache.stats()["entries"] == 0
+
+
+def test_resolution_memo_returns_equal_but_independent_copies():
+    plan = {"contexts": [{"goal": "g", "title": "t", "score": 1.0, "actions": [{
+        "actionName": "Check Battery Usage", "description": "It will show battery usage.",
+        "category": "auto", "stepGroups": [{"steps": ["Open Settings."]}],
+    }]}]}
+    first = query_processor.resolve_plan(plan)
+    second = query_processor.resolve_plan(plan)
+    assert first == second
+    first["contexts"][0]["title"] = "mutated"
+    assert query_processor.resolve_plan(plan)["contexts"][0]["title"] == "t"
+    assert plan["contexts"][0]["actions"][0]["stepGroups"][0].get("actionableDeeplink") is None
