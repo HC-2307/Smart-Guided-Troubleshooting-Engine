@@ -1,0 +1,215 @@
+{
+  "_readme": "M3 semantic-cache benchmark. Each intent has one seed (cached via the real pipeline) and 8 paraphrases in varied registers (casual, formal, panicked, terse, verbose, typo). Paraphrases at even index are the dev split (threshold tuning), odd index are the held-out test split. 'probes' are near-miss queries with a different intent that must NOT be served from any cached seed. Written by the M3 developer before any threshold was tuned.",
+  "intents": [
+    {
+      "id": "battery_drain",
+      "seed": "My phone battery drains really fast",
+      "paraphrases": [
+        "battery draining super quick on my galaxy",
+        "Why does my Samsung battery die so quickly?",
+        "My phone loses charge within a few hours even when I barely use it",
+        "HELP my battery keeps dying so fast!!",
+        "battery drain",
+        "The device exhibits excessive battery discharge throughout the day.",
+        "my battry drains realy fast",
+        "Phone runs out of battery way too fast since last week"
+      ]
+    },
+    {
+      "id": "battery_chargefail",
+      "seed": "My phone won't charge when plugged in",
+      "paraphrases": [
+        "phone not charging at all",
+        "It doesn't charge even though the charger is connected",
+        "Galaxy S23 stopped charging when I plug the cable in",
+        "The device does not charge when connected to power.",
+        "wont charge",
+        "plugged it in overnight and it still isn't charging, what do I do",
+        "my phone is not chargng when plugged in",
+        "Charger connected but the phone will not charge"
+      ]
+    },
+    {
+      "id": "overheating",
+      "seed": "My phone gets very hot during normal use",
+      "paraphrases": [
+        "phone overheating all the time",
+        "My Galaxy heats up a lot even when I'm just browsing",
+        "device is burning hot to touch",
+        "The handset overheats during ordinary usage.",
+        "phone way too hot",
+        "it gets really warm on the back even when I am only texting",
+        "my phone is overheatng constantly",
+        "Why is my Samsung getting so hot?"
+      ]
+    },
+    {
+      "id": "screen_black",
+      "seed": "My screen went completely black but the phone is still on",
+      "paraphrases": [
+        "screen is black but phone still rings",
+        "Display turned dark and shows nothing although the device is powered on",
+        "my galaxy s24 screen went blank but I can hear notifications",
+        "The display is blank while the phone continues to operate.",
+        "black screen phone still on",
+        "the screen suddenly went totally dark, I can feel it vibrate so it's on but nothing shows",
+        "screen gone blak but phone is working",
+        "Phone works but the display stays black"
+      ]
+    },
+    {
+      "id": "screen_flicker",
+      "seed": "My screen keeps flickering",
+      "paraphrases": [
+        "display flickers constantly",
+        "The screen is flashing on and off randomly",
+        "my galaxy screen keeps blinking",
+        "The display exhibits intermittent flicker.",
+        "screen flicker",
+        "every few seconds the whole screen flickers and it's giving me a headache",
+        "screen flickring nonstop",
+        "Why does my display keep flickering?"
+      ]
+    },
+    {
+      "id": "screen_cracked",
+      "seed": "My phone screen is cracked",
+      "paraphrases": [
+        "cracked screen",
+        "I dropped my phone and the display is shattered",
+        "the glass on my galaxy is cracked all over",
+        "The display panel has sustained a crack.",
+        "screen smashed",
+        "my screen got cracked after it fell off the table this morning",
+        "my screen is craked",
+        "How do I fix a cracked display?"
+      ]
+    },
+    {
+      "id": "touch_lag",
+      "seed": "Touch screen is laggy and slow to respond",
+      "paraphrases": [
+        "touch response is super laggy",
+        "The screen takes a long time to react when I tap",
+        "my galaxy touchscreen is slow and delayed",
+        "Touch input exhibits significant latency.",
+        "laggy touch",
+        "whenever I tap anything there's a delay of like a second before it responds",
+        "touch screen lagy and slow",
+        "Why is my screen so slow when I touch it?"
+      ]
+    },
+    {
+      "id": "wifi_disconnect",
+      "seed": "Wi-Fi keeps disconnecting on my Galaxy",
+      "paraphrases": [
+        "wifi keeps dropping",
+        "My phone disconnects from Wi-Fi every few minutes",
+        "galaxy s22 wifi connection is unstable",
+        "The device repeatedly loses its wireless LAN connection.",
+        "wifi disconnects",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "wify keeps disconecting",
+        "Why does my Samsung keep dropping Wi-Fi?"
+      ]
+    },
+    {
+      "id": "bluetooth_pair",
+      "seed": "Bluetooth won't connect to my earbuds",
+      "paraphrases": [
+        "bluetooth not connecting to earbuds",
+        "My Galaxy Buds will not pair over Bluetooth",
+        "cant connect my earbuds with bluetooth",
+        "The device fails to establish a Bluetooth connection with headphones.",
+        "bluetooth pairing fails",
+        "I try to pair my earbuds through bluetooth and it never connects",
+        "bluetoth wont connect to buds",
+        "Why won't my phone connect to Bluetooth earbuds?"
+      ]
+    },
+    {
+      "id": "rear_camera_blur",
+      "seed": "Rear camera photos are blurry",
+      "paraphrases": [
+        "back camera pictures blurry",
+        "Photos from the main camera come out out of focus",
+        "my rear camera won't focus and pics are fuzzy",
+        "The rear camera produces unfocused images.",
+        "blurry rear camera",
+        "every photo I take with the back camera looks hazy and not sharp",
+        "rear camra photos blury",
+        "Why are my rear camera shots blurry?"
+      ]
+    },
+    {
+      "id": "no_sound",
+      "seed": "No sound coming from my speaker",
+      "paraphrases": [
+        "speaker not working no sound",
+        "I can't hear anything from the phone speaker",
+        "my galaxy has no audio at all",
+        "The loudspeaker produces no audio output.",
+        "no sound",
+        "videos and ringtones make no sound even with the volume all the way up",
+        "no sond from speker",
+        "Why is there no sound on my phone?"
+      ]
+    },
+    {
+      "id": "storage_full",
+      "seed": "My phone storage is full",
+      "paraphrases": [
+        "storage full",
+        "I keep getting a storage almost full warning",
+        "my galaxy is out of storage space",
+        "The internal storage capacity has been exhausted.",
+        "no space left on phone",
+        "can't download anything because it says storage is full",
+        "storge is full",
+        "How do I free up storage on my Samsung?"
+      ]
+    },
+    {
+      "id": "floating_button_remove",
+      "seed": "How do I remove the floating circle button on my screen",
+      "paraphrases": [
+        "remove floating button",
+        "Get rid of the floating circle that stays on my display",
+        "I want to turn off the floating shortcut circle",
+        "How can I disable the floating assistant button?",
+        "remove the circle on screen",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "remove floting circle button",
+        "Disable the floating circle on my Galaxy screen"
+      ]
+    },
+    {
+      "id": "app_crash",
+      "seed": "Apps keep crashing on my phone",
+      "paraphrases": [
+        "apps crashing",
+        "My applications keep closing unexpectedly",
+        "every app crashes on my galaxy",
+        "Applications terminate abnormally on the device.",
+        "app crash",
+        "whenever I open instagram or whatsapp it just crashes back to home",
+        "aps keep crashing",
+        "Why do my apps keep crashing?"
+      ]
+    }
+  ],
+  "probes": [
+    {"query": "Front camera selfies are blurry", "near": "rear_camera_blur"},
+    {"query": "My mobile data keeps disconnecting", "near": "wifi_disconnect"},
+    {"query": "How do I turn on the floating circle button", "near": "floating_button_remove"},
+    {"query": "Microphone does not pick up my voice on calls", "near": "no_sound"},
+    {"query": "My SD card is not detected", "near": "storage_full"},
+    {"query": "My phone won't turn on at all", "near": "screen_black"},
+    {"query": "Fingerprint sensor is not working", "near": "touch_lag"},
+    {"query": "Battery drains fast and it also won't charge past 50 percent", "near": "battery_drain"},
+    {"query": "Bluetooth keeps disconnecting from my car", "near": "bluetooth_pair"},
+    {"query": "NFC payments are not working", "near": "wifi_disconnect"},
+    {"query": "Cover screen stopped working on my Flip", "near": "screen_black"},
+    {"query": "My phone is stuck in a boot loop", "near": "app_crash"}
+  ]
+}

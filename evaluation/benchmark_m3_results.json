@@ -1,0 +1,1785 @@
+{
+  "selected_thresholds": {
+    "semantic": 0.6,
+    "variation": 0.6,
+    "dev_hit_rate": 0.9643
+  },
+  "per_config_thresholds": {
+    "A_exact_baseline": {
+      "semantic": 0.85,
+      "variation": 0.85,
+      "dev_hit_rate": 0.0
+    },
+    "B_semantic_unguarded": {
+      "semantic": 0.65,
+      "variation": 0.65,
+      "dev_hit_rate": 0.9286
+    },
+    "C_semantic_guarded": {
+      "semantic": 0.6,
+      "variation": 0.6,
+      "dev_hit_rate": 0.9643
+    },
+    "D_full_guarded_seeded": {
+      "semantic": 0.6,
+      "variation": 0.6,
+      "dev_hit_rate": 0.9643
+    }
+  },
+  "dev_grid": {
+    "A_exact_baseline": [
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.3,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.35,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.4,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.35,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.4,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.45,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.4,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.45,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.45,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.95,
+        "hit_rate": 0.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      }
+    ],
+    "B_semantic_unguarded": [
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.3,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.5,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.45,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 4,
+        "safe": false
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 1,
+        "safe": false
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 1,
+        "safe": false
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 1,
+        "safe": false
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.95,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      }
+    ],
+    "C_semantic_guarded": [
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.3,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.5,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.45,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.95,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      }
+    ],
+    "D_full_guarded_seeded": [
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.3,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.3,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.35,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.35,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.4,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.4,
+        "variation_threshold": 0.5,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.45,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.5,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.45,
+        "variation_threshold": 0.55,
+        "hit_rate": 1.0,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.5,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.5,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.55,
+        "hit_rate": 0.9821,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.55,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 2,
+        "safe": false
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.6,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.6,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9643,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.65,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.65,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.9286,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.7,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.7,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.8214,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.75,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.75,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.6964,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.8,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.8,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5893,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.85,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.9,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      },
+      {
+        "threshold": 0.85,
+        "variation_threshold": 0.95,
+        "hit_rate": 0.5,
+        "wrong_hits": 0,
+        "probe_false_hits": 0,
+        "safe": true
+      }
+    ]
+  },
+  "test": {
+    "A_exact_baseline": {
+      "paraphrases": 56,
+      "correct_hits": 0,
+      "wrong_hits": 0,
+      "hit_rate": 0.0,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 0,
+        "variation": 0
+      },
+      "missed_queries": [
+        "Why does my Samsung battery die so quickly?",
+        "HELP my battery keeps dying so fast!!",
+        "The device exhibits excessive battery discharge throughout the day.",
+        "Phone runs out of battery way too fast since last week",
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "plugged it in overnight and it still isn't charging, what do I do",
+        "Charger connected but the phone will not charge",
+        "My Galaxy heats up a lot even when I'm just browsing",
+        "The handset overheats during ordinary usage.",
+        "it gets really warm on the back even when I am only texting",
+        "Why is my Samsung getting so hot?",
+        "Display turned dark and shows nothing although the device is powered on",
+        "The display is blank while the phone continues to operate.",
+        "the screen suddenly went totally dark, I can feel it vibrate so it's on but nothing shows",
+        "Phone works but the display stays black",
+        "The screen is flashing on and off randomly",
+        "The display exhibits intermittent flicker.",
+        "every few seconds the whole screen flickers and it's giving me a headache",
+        "Why does my display keep flickering?",
+        "I dropped my phone and the display is shattered",
+        "The display panel has sustained a crack.",
+        "my screen got cracked after it fell off the table this morning",
+        "How do I fix a cracked display?",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "whenever I tap anything there's a delay of like a second before it responds",
+        "Why is my screen so slow when I touch it?",
+        "My phone disconnects from Wi-Fi every few minutes",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "Why does my Samsung keep dropping Wi-Fi?",
+        "My Galaxy Buds will not pair over Bluetooth",
+        "The device fails to establish a Bluetooth connection with headphones.",
+        "I try to pair my earbuds through bluetooth and it never connects",
+        "Why won't my phone connect to Bluetooth earbuds?",
+        "Photos from the main camera come out out of focus",
+        "The rear camera produces unfocused images.",
+        "every photo I take with the back camera looks hazy and not sharp",
+        "Why are my rear camera shots blurry?",
+        "I can't hear anything from the phone speaker",
+        "The loudspeaker produces no audio output.",
+        "videos and ringtones make no sound even with the volume all the way up",
+        "Why is there no sound on my phone?",
+        "I keep getting a storage almost full warning",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "How do I free up storage on my Samsung?",
+        "Get rid of the floating circle that stays on my display",
+        "How can I disable the floating assistant button?",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "Disable the floating circle on my Galaxy screen",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home",
+        "Why do my apps keep crashing?"
+      ]
+    },
+    "B_semantic_unguarded": {
+      "paraphrases": 56,
+      "correct_hits": 36,
+      "wrong_hits": 0,
+      "hit_rate": 0.6429,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 36,
+        "variation": 0
+      },
+      "missed_queries": [
+        "Why does my Samsung battery die so quickly?",
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "The handset overheats during ordinary usage.",
+        "it gets really warm on the back even when I am only texting",
+        "my screen got cracked after it fell off the table this morning",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "whenever I tap anything there's a delay of like a second before it responds",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "videos and ringtones make no sound even with the volume all the way up",
+        "Why is there no sound on my phone?",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    },
+    "C_semantic_guarded": {
+      "paraphrases": 56,
+      "correct_hits": 42,
+      "wrong_hits": 0,
+      "hit_rate": 0.75,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 42,
+        "variation": 0
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    },
+    "D_full_guarded_seeded": {
+      "paraphrases": 56,
+      "correct_hits": 42,
+      "wrong_hits": 0,
+      "hit_rate": 0.75,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 38,
+        "variation": 4
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    },
+    "E_full_seeded_simulated_llm_variations": {
+      "paraphrases": 56,
+      "correct_hits": 43,
+      "wrong_hits": 0,
+      "hit_rate": 0.7679,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 24,
+        "variation": 19
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    }
+  },
+  "test_shared_threshold": {
+    "A_exact_baseline": {
+      "paraphrases": 56,
+      "correct_hits": 0,
+      "wrong_hits": 0,
+      "hit_rate": 0.0,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 0,
+        "variation": 0
+      },
+      "missed_queries": [
+        "Why does my Samsung battery die so quickly?",
+        "HELP my battery keeps dying so fast!!",
+        "The device exhibits excessive battery discharge throughout the day.",
+        "Phone runs out of battery way too fast since last week",
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "plugged it in overnight and it still isn't charging, what do I do",
+        "Charger connected but the phone will not charge",
+        "My Galaxy heats up a lot even when I'm just browsing",
+        "The handset overheats during ordinary usage.",
+        "it gets really warm on the back even when I am only texting",
+        "Why is my Samsung getting so hot?",
+        "Display turned dark and shows nothing although the device is powered on",
+        "The display is blank while the phone continues to operate.",
+        "the screen suddenly went totally dark, I can feel it vibrate so it's on but nothing shows",
+        "Phone works but the display stays black",
+        "The screen is flashing on and off randomly",
+        "The display exhibits intermittent flicker.",
+        "every few seconds the whole screen flickers and it's giving me a headache",
+        "Why does my display keep flickering?",
+        "I dropped my phone and the display is shattered",
+        "The display panel has sustained a crack.",
+        "my screen got cracked after it fell off the table this morning",
+        "How do I fix a cracked display?",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "whenever I tap anything there's a delay of like a second before it responds",
+        "Why is my screen so slow when I touch it?",
+        "My phone disconnects from Wi-Fi every few minutes",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "Why does my Samsung keep dropping Wi-Fi?",
+        "My Galaxy Buds will not pair over Bluetooth",
+        "The device fails to establish a Bluetooth connection with headphones.",
+        "I try to pair my earbuds through bluetooth and it never connects",
+        "Why won't my phone connect to Bluetooth earbuds?",
+        "Photos from the main camera come out out of focus",
+        "The rear camera produces unfocused images.",
+        "every photo I take with the back camera looks hazy and not sharp",
+        "Why are my rear camera shots blurry?",
+        "I can't hear anything from the phone speaker",
+        "The loudspeaker produces no audio output.",
+        "videos and ringtones make no sound even with the volume all the way up",
+        "Why is there no sound on my phone?",
+        "I keep getting a storage almost full warning",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "How do I free up storage on my Samsung?",
+        "Get rid of the floating circle that stays on my display",
+        "How can I disable the floating assistant button?",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "Disable the floating circle on my Galaxy screen",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home",
+        "Why do my apps keep crashing?"
+      ]
+    },
+    "B_semantic_unguarded": {
+      "paraphrases": 56,
+      "correct_hits": 42,
+      "wrong_hits": 0,
+      "hit_rate": 0.75,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 42,
+        "variation": 0
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    },
+    "C_semantic_guarded": {
+      "paraphrases": 56,
+      "correct_hits": 42,
+      "wrong_hits": 0,
+      "hit_rate": 0.75,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 42,
+        "variation": 0
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    },
+    "D_full_guarded_seeded": {
+      "paraphrases": 56,
+      "correct_hits": 42,
+      "wrong_hits": 0,
+      "hit_rate": 0.75,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 1,
+      "probe_false_hit_queries": [
+        "Battery drains fast and it also won't charge past 50 percent"
+      ],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 38,
+        "variation": 4
+      },
+      "missed_queries": [
+        "It doesn't charge even though the charger is connected",
+        "The device does not charge when connected to power.",
+        "Charger connected but the phone will not charge",
+        "it gets really warm on the back even when I am only texting",
+        "The screen takes a long time to react when I tap",
+        "Touch input exhibits significant latency.",
+        "The device repeatedly loses its wireless LAN connection.",
+        "at home my wifi keeps cutting out on the phone but my laptop is fine",
+        "The internal storage capacity has been exhausted.",
+        "can't download anything because it says storage is full",
+        "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
+        "My applications keep closing unexpectedly",
+        "Applications terminate abnormally on the device.",
+        "whenever I open instagram or whatsapp it just crashes back to home"
+      ]
+    }
+  },
+  "dev": {
+    "A_exact_baseline": {
+      "paraphrases": 56,
+      "correct_hits": 0,
+      "wrong_hits": 0,
+      "hit_rate": 0.0,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 0,
+        "variation": 0
+      },
+      "missed_queries": [
+        "battery draining super quick on my galaxy",
+        "My phone loses charge within a few hours even when I barely use it",
+        "battery drain",
+        "my battry drains realy fast",
+        "phone not charging at all",
+        "Galaxy S23 stopped charging when I plug the cable in",
+        "wont charge",
+        "my phone is not chargng when plugged in",
+        "phone overheating all the time",
+        "device is burning hot to touch",
+        "phone way too hot",
+        "my phone is overheatng constantly",
+        "screen is black but phone still rings",
+        "my galaxy s24 screen went blank but I can hear notifications",
+        "black screen phone still on",
+        "screen gone blak but phone is working",
+        "display flickers constantly",
+        "my galaxy screen keeps blinking",
+        "screen flicker",
+        "screen flickring nonstop",
+        "cracked screen",
+        "the glass on my galaxy is cracked all over",
+        "screen smashed",
+        "my screen is craked",
+        "touch response is super laggy",
+        "my galaxy touchscreen is slow and delayed",
+        "laggy touch",
+        "touch screen lagy and slow",
+        "wifi keeps dropping",
+        "galaxy s22 wifi connection is unstable",
+        "wifi disconnects",
+        "wify keeps disconecting",
+        "bluetooth not connecting to earbuds",
+        "cant connect my earbuds with bluetooth",
+        "bluetooth pairing fails",
+        "bluetoth wont connect to buds",
+        "back camera pictures blurry",
+        "my rear camera won't focus and pics are fuzzy",
+        "blurry rear camera",
+        "rear camra photos blury",
+        "speaker not working no sound",
+        "my galaxy has no audio at all",
+        "no sound",
+        "no sond from speker",
+        "storage full",
+        "my galaxy is out of storage space",
+        "no space left on phone",
+        "storge is full",
+        "remove floating button",
+        "I want to turn off the floating shortcut circle",
+        "remove the circle on screen",
+        "remove floting circle button",
+        "apps crashing",
+        "every app crashes on my galaxy",
+        "app crash",
+        "aps keep crashing"
+      ]
+    },
+    "B_semantic_unguarded": {
+      "paraphrases": 56,
+      "correct_hits": 52,
+      "wrong_hits": 0,
+      "hit_rate": 0.9286,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 52,
+        "variation": 0
+      },
+      "missed_queries": [
+        "My phone loses charge within a few hours even when I barely use it",
+        "the glass on my galaxy is cracked all over",
+        "my galaxy has no audio at all",
+        "no sound"
+      ]
+    },
+    "C_semantic_guarded": {
+      "paraphrases": 56,
+      "correct_hits": 54,
+      "wrong_hits": 0,
+      "hit_rate": 0.9643,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 54,
+        "variation": 0
+      },
+      "missed_queries": [
+        "My phone loses charge within a few hours even when I barely use it",
+        "the glass on my galaxy is cracked all over"
+      ]
+    },
+    "D_full_guarded_seeded": {
+      "paraphrases": 56,
+      "correct_hits": 54,
+      "wrong_hits": 0,
+      "hit_rate": 0.9643,
+      "wrong_hit_rate": 0.0,
+      "probes": 6,
+      "probe_false_hits": 0,
+      "probe_false_hit_queries": [],
+      "hits_by_tier": {
+        "exact": 0,
+        "semantic": 53,
+        "variation": 1
+      },
+      "missed_queries": [
+        "My phone loses charge within a few hours even when I barely use it",
+        "the glass on my galaxy is cracked all over"
+      ]
+    }
+  },
+  "api_latency": {
+    "cold_ms": {
+      "count": 27,
+      "p50": 22.839,
+      "p95": 35.248,
+      "mean": 35.096
+    },
+    "hit_ms": {
+      "count": 43,
+      "p50": 9.882,
+      "p95": 14.463,
+      "mean": 10.522
+    },
+    "server_metrics": {
+      "pipeline": {
+        "requests": 70,
+        "cache_hit_rate": 0.6286,
+        "latency_ms": {
+          "hit": {
+            "count": 44,
+            "p50": 4.631,
+            "p95": 6.921
+          },
+          "cold": {
+            "count": 26,
+            "p50": 17.705,
+            "p95": 26.719
+          }
+        },
+        "counters": {
+          "requests": 70,
+          "cache_miss": 26,
+          "llm_calls": 0,
+          "errors": 0,
+          "cache_variation": 8,
+          "cache_semantic": 36
+        },
+        "validation_codes": {
+          "TOGGLE_POLARITY_CONFLICT": 5,
+          "ACTION_NAME_CASE": 3
+        },
+        "est_cost_usd": 0.0
+      },
+      "cache": {
+        "entries": 26,
+        "keys": 245,
+        "hits": 44,
+        "misses": 26,
+        "hit_rate": 0.6286,
+        "hits_by_tier": {
+          "exact": 0,
+          "semantic": 36,
+          "variation": 8
+        },
+        "guard_rejections": {
+          "domain": 0,
+          "facet": 0
+        },
+        "variations_filtered": 15,
+        "evicted": 0
+      }
+    }
+  },
+  "official_contract_audit": {
+    "queries": 20,
+    "responses_delivered": 20,
+    "repairs": 0,
+    "quarantined": 0,
+    "violation_codes": {}
+  },
+  "environment": {
+    "python": "3.14.2",
+    "llm_provider": "disabled (deterministic M1 fallback)"
+  }
+}
