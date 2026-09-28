@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Optional
 
-from backend.config import CATALOG_PATH
+from backend.config import CATALOG_PATH, settings
+from backend.services.catalog_index import dense_index
 from backend.services.catalog_validator import load_catalog
 from backend.services.contract_validator import MINOR_WORDS, entry_polarity, polarity
 
@@ -40,6 +41,12 @@ MALFUNCTION = re.compile(
     r"damage\w*|water|wet|swollen|noise|distort\w*|unresponsive|(?<!do )not)\b"
 )
 
+REQUEST = re.compile(
+    r"\b(turn|switch|change|set|make|show|hide|use|enable|disable|activate|deactivate|increase|decrease|"
+    r"adjust|put|pick|choose|select|allow|stop|start|keep|silence|mute|unmute|want|wanna|how do i|how to|"
+    r"how can i|where is|where do i|let me|can i|i'd like|i would like)\b"
+)
+
 VERB_PREFIXES = {"switch", "view", "enable", "disable", "adjust", "check", "increase", "decrease", "set", "use",
                  "show", "turn", "open"}
 TRAILING_WORDS = MINOR_WORDS | {"your", "their", "its", "between", "about", "when", "while", "so", "that"}
@@ -63,6 +70,7 @@ class Match:
     score: float
     evidence: float
     margin: float
+    source: str = "keyword"
 
 
 def _usable(entry: dict) -> bool:
@@ -96,6 +104,36 @@ def _index() -> tuple[list[dict], list[dict[str, float]], dict[str, float], list
     return entries, fields, idf, labels
 
 
+def entry_text(entry: dict) -> str:
+    return f"{_key(entry)}. {entry.get('message') or ''}. {entry.get('description') or ''} {entry.get('qna_description') or ''}"
+
+
+def ensure_dense_index() -> bool:
+    if dense_index.status == "not_loaded":
+        entries = _index()[0]
+        dense_index.build(entries, [entry_text(e) for e in entries])
+    return dense_index.ready
+
+
+def _dense_match(query: str) -> Optional[Match]:
+    if not REQUEST.search((query or "").lower()) or not ensure_dense_index():
+        return None
+    results = dense_index.search(query, k=20)
+    if not results:
+        return None
+    best_score, best = results[0]
+    feature = _feature(best)
+    runner_up = next((sc for sc, e in results if _feature(e) != feature), 0.0)
+    margin = best_score - runner_up
+    if best_score < settings.dense_min_score or margin < settings.dense_min_gap:
+        return None
+    candidates = [e for e in _index()[0] if _feature(e) == feature]
+    chosen = _pick_by_polarity(candidates, polarity(query))
+    if chosen is None:
+        return None
+    return Match(chosen, round(best_score, 4), 0.0, round(margin, 4), "dense")
+
+
 def _feature(entry: dict) -> str:
     return _key(entry).lower() or entry["message"].lower()
 
@@ -106,9 +144,16 @@ def _pick_by_polarity(candidates: list[dict], wanted: Optional[str]) -> Optional
     return (same or neutral or [None])[0]
 
 
-def match(query: str) -> Optional[Match]:
+def match(query: str, dense: bool = True) -> Optional[Match]:
     if MALFUNCTION.search((query or "").lower()):
         return None
+    found = _keyword_match(query)
+    if found is None and dense:
+        found = _dense_match(query)
+    return found
+
+
+def _keyword_match(query: str) -> Optional[Match]:
     q_tokens = list(dict.fromkeys(tokens(query)))
     if not q_tokens:
         return None

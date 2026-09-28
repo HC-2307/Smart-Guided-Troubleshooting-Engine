@@ -46,6 +46,11 @@ class Settings:
     llm_cost_per_call_usd: float = _env_float("LLM_COST_PER_CALL_USD", 0.0004)
     relevance_llm_timeout_seconds: float = _env_float("RELEVANCE_LLM_TIMEOUT_SECONDS", 5.0)
     relevance_llm_on_cache_hit: bool = _env_bool("RELEVANCE_LLM_ON_CACHE_HIT", False)
+    embeddings_enabled: bool = _env_bool("EMBEDDINGS_ENABLED", True)
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
+    embedding_cache_dir: Path = Path(os.getenv("EMBEDDING_CACHE_DIR", str(BASE_DIR / ".cache" / "embeddings")))
+    dense_min_score: float = _env_float("DENSE_MIN_SCORE", 0.74)
+    dense_min_gap: float = _env_float("DENSE_MIN_GAP", 0.0)
 
 
 settings = Settings()

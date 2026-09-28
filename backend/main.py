@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 
 from backend.api.troubleshoot import router
 from backend.services import cache, telemetry
+from backend.services.catalog_index import dense_index
+from backend.services.config_planner import ensure_dense_index
 from backend.services.contract_validator import catalog_by_deeplink
 from backend.services.query_processor import _get_m2_engine
 from backend.services.text_similarity import catalog_idf
@@ -22,6 +24,7 @@ def warm_up() -> None:
     _get_m2_engine()
     catalog_by_deeplink()
     catalog_idf()
+    ensure_dense_index()
     _ready.set()
 
 
@@ -70,4 +73,4 @@ def health():
 
 @app.get("/v1/metrics")
 def metrics():
-    return {"pipeline": telemetry.metrics.snapshot(), "cache": cache.stats()}
+    return {"pipeline": telemetry.metrics.snapshot(), "cache": cache.stats(), "dense_index": dense_index.status}
