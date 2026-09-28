@@ -5,9 +5,6 @@ import sys
 import time
 from pathlib import Path
 
-for key in ("OPENAI_API_KEY", "GEMINI_API_KEY"):
-    os.environ.pop(key, None)
-
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
@@ -19,6 +16,9 @@ from backend.services import telemetry
 from backend.services.cache import SemanticCache
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
+
+for key in ("OPENAI_API_KEY", "GEMINI_API_KEY"):
+    os.environ.pop(key, None)
 
 DATASET = ROOT / "evaluation" / "m3_paraphrase_set.json"
 INPUT_FILE = ROOT / "data" / "input.txt"

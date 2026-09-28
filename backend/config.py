@@ -2,8 +2,18 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 CATALOG_PATH = BASE_DIR / "data" / "deeplinks.json"
+ENV_FILE = BASE_DIR / ".env"
+
+
+def load_env_file(path: Path = ENV_FILE) -> bool:
+    return load_dotenv(path, override=False)
+
+
+load_env_file()
 
 
 def _env_float(name: str, default: float) -> float:

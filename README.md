@@ -56,13 +56,16 @@ deterministic fallback handles enrichment and structuring.
 
 ### Enabling the LLM path (optional)
 
-The app reads configuration from **environment variables**. `.env` is not loaded
-automatically, so export the variables in your shell:
+Copy [`.env.example`](.env.example) to `.env` and fill in a key. The app loads `.env` on
+startup, and Docker Compose reads it too:
 
 ```bash
-export OPENAI_API_KEY=sk-...
+cp .env.example .env    # then set OPENAI_API_KEY=...
 uvicorn backend.main:app --port 8000
 ```
+
+Variables already set in your shell take priority over `.env`. Any OpenAI-compatible provider
+works by setting `OPENAI_BASE_URL` and `LLM_MODEL` (for example Gemini or NVIDIA).
 
 Every setting and its default is listed in [`.env.example`](.env.example). Never commit a
 real key.
