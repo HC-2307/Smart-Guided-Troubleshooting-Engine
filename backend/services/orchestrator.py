@@ -51,8 +51,6 @@ def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootR
 
     with telemetry.stage("pipeline"):
         plan = process_query(query, siis_response)
-    if telemetry.llm_provider_configured() and trace.planner == "m1":
-        trace.llm_calls += 2
 
     with telemetry.stage("contract_validation"):
         repaired, report = validate_and_repair(plan)

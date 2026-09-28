@@ -95,30 +95,6 @@ def test_siis_reference_bypasses_the_gate():
     assert response.json()["contexts"]
 
 
-@pytest.fixture
-def fake_llm(monkeypatch):
-    from dataclasses import replace
-
-    from backend.services import orchestrator, query_enrichment, relevance, troubleshooting_engine
-
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    monkeypatch.setattr(query_enrichment, "_call_llm_for_enrichment", lambda *a, **k: None)
-    monkeypatch.setattr(troubleshooting_engine, "_call_llm_for_structure", lambda *a, **k: None)
-    state = {"calls": [], "verdicts": {}, "default": '{"relevant": true}', "error": None}
-
-    def ask(query):
-        state["calls"].append(query)
-        if state["error"]:
-            raise state["error"]
-        return state["verdicts"].get(query, state["default"])
-
-    monkeypatch.setattr(relevance, "_ask_llm", ask)
-    state["strict"] = lambda: monkeypatch.setattr(
-        orchestrator, "settings", replace(orchestrator.settings, relevance_llm_on_cache_hit=True)
-    )
-    return state
-
-
 def test_llm_rejects_query_the_keywords_would_accept(fake_llm):
     fake_llm["verdicts"]["my laptop battery drains fast"] = '{"relevant": false}'
     response = client.post("/v1/troubleshoot", json={"query": "my laptop battery drains fast"})
@@ -131,8 +107,12 @@ def test_llm_accepts_query_the_keywords_would_reject(fake_llm):
     query = "the thing I hold to call people is acting weird"
     assert not is_device_query(query)
     response = client.post("/v1/troubleshoot", json={"query": query})
-    assert response.json()["contexts"]
+    assert response.json()["fallback"] == "no_siis_context"
     assert response.headers["X-Relevance"] == "llm"
+
+    battery = client.post("/v1/troubleshoot", json={"query": "the thing I charge every night dies by noon"})
+    assert battery.json()["contexts"]
+    assert battery.headers["X-Relevance"] == "llm"
 
 
 def test_llm_failure_falls_back_to_keywords(fake_llm):
@@ -201,7 +181,7 @@ def test_prompt_marks_user_text_as_data():
 def test_llm_client_fails_fast_without_retries(monkeypatch):
     import openai
 
-    from backend.services import relevance
+    from backend.services import llm_guard, relevance, telemetry
 
     seen = {}
 
@@ -217,16 +197,24 @@ def test_llm_client_fails_fast_without_retries(monkeypatch):
         def create(self, **kwargs):
             seen["timeout"] = kwargs["timeout"]
             seen["reasoning_effort"] = kwargs.get("reasoning_effort")
+            seen["extra_body"] = kwargs.get("extra_body")
             raise openai.APIConnectionError(request=None)
 
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr(openai, "OpenAI", FakeClient)
+    telemetry.begin()
     with pytest.raises(openai.APIConnectionError):
         relevance._ask_llm("tell me a joke")
     assert seen["max_retries"] == 0
-    assert seen["timeout"] == relevance.settings.relevance_llm_timeout_seconds
-    assert seen["reasoning_effort"] is None
+    assert 0 < seen["timeout"] <= relevance.settings.relevance_llm_timeout_seconds
+    assert seen["reasoning_effort"] is None and seen["extra_body"] is None
 
+    llm_guard.guard.reset()
     monkeypatch.setenv("LLM_REASONING_EFFORT", "none")
+    monkeypatch.setenv("LLM_EXTRA_BODY", '{"chat_template_kwargs": {"enable_thinking": false}}')
+    telemetry.begin()
     with pytest.raises(openai.APIConnectionError):
         relevance._ask_llm("tell me a joke")
     assert seen["reasoning_effort"] == "none"
+    assert seen["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+    telemetry.end()

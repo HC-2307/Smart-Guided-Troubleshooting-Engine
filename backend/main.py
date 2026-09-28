@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from backend.api.troubleshoot import router
 from backend.config import settings
-from backend.services import cache, telemetry
+from backend.services import cache, llm_guard, telemetry
 from backend.services.catalog_index import dense_index
 from backend.services.config_planner import ensure_dense_index
 from backend.services.contract_validator import catalog_by_deeplink
@@ -106,5 +106,6 @@ def metrics():
         "pipeline": telemetry.metrics.snapshot(),
         "cache": cache.stats(),
         "dense_index": dense_index.status,
+        "llm_guard": llm_guard.guard.state(),
         "startup": startup_report,
     }

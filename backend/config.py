@@ -54,6 +54,11 @@ class Settings:
     cache_persist_path: str = os.getenv("CACHE_PERSIST_PATH", str(BASE_DIR / ".cache" / "semantic_cache.json"))
     cache_persist_interval_seconds: float = _env_float("CACHE_PERSIST_INTERVAL_SECONDS", 5.0)
     cache_prewarm: bool = _env_bool("CACHE_PREWARM", True)
+    llm_call_timeout_seconds: float = _env_float("LLM_CALL_TIMEOUT_SECONDS", 6.0)
+    llm_request_budget_seconds: float = _env_float("LLM_REQUEST_BUDGET_SECONDS", 5.5)
+    llm_min_call_seconds: float = _env_float("LLM_MIN_CALL_SECONDS", 1.0)
+    llm_breaker_failures: int = _env_int("LLM_BREAKER_FAILURES", 2)
+    llm_breaker_cooldown_seconds: float = _env_float("LLM_BREAKER_COOLDOWN_SECONDS", 60.0)
 
 
 settings = Settings()

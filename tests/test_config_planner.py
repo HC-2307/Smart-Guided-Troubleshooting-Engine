@@ -124,9 +124,7 @@ def test_settings_plan_is_cached_and_opposite_toggle_is_not_reused():
     assert off.json()["contexts"][0]["actions"][0]["actionName"] == "Disable Bluetooth"
 
 
-def test_catalog_plan_does_not_count_m1_llm_calls(monkeypatch):
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    monkeypatch.setattr(relevance, "_ask_llm", lambda query: '{"relevant": true}')
+def test_catalog_plan_does_not_count_m1_llm_calls(fake_llm):
     cache.clear()
     response = client.post("/v1/troubleshoot", json={"query": "my phone time is in 24 hrs"})
     assert response.headers["X-Planner"] == "catalog"

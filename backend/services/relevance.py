@@ -101,24 +101,14 @@ def _prompt() -> str:
 
 
 def _ask_llm(query: str) -> str:
-    from openai import OpenAI
+    from backend.services.llm_guard import chat_json
 
-    client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY"),
-        base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        max_retries=0,
-    )
-    effort = os.getenv("LLM_REASONING_EFFORT", "").strip()
-    response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
-        messages=[{"role": "user", "content": _prompt().replace("{user_query}", query)}],
-        response_format={"type": "json_object"},
+    return chat_json(
+        [{"role": "user", "content": _prompt().replace("{user_query}", query)}],
         temperature=0,
         max_tokens=20,
-        timeout=settings.relevance_llm_timeout_seconds,
-        **({"reasoning_effort": effort} if effort else {}),
+        cap=settings.relevance_llm_timeout_seconds,
     )
-    return response.choices[0].message.content or ""
 
 
 def _parse_verdict(content: str) -> bool:
@@ -132,7 +122,6 @@ def _parse_verdict(content: str) -> bool:
 
 @lru_cache(maxsize=2048)
 def _llm_verdict(normalized_query: str) -> bool:
-    telemetry.current().llm_calls += 1
     return _parse_verdict(_ask_llm(normalized_query))
 
 

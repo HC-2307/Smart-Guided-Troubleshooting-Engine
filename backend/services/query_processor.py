@@ -1,4 +1,5 @@
 import copy
+import difflib
 import json
 import re
 import threading
@@ -9,7 +10,7 @@ from typing import Optional
 from backend.services import telemetry
 from backend.services.config_planner import build_plan
 from backend.services.query_enrichment import DOMAIN_KEYWORDS, enrich_query
-from backend.services.text_similarity import CONCEPT_PHRASES, CONCEPT_WORDS, _base_normalize, _correct, canonical_tokens
+from backend.services.text_similarity import CONCEPT_PHRASES, CONCEPT_WORDS, _base_normalize
 from backend.services.troubleshooting_engine import find_matching_siis, generate_troubleshooting_plan
 from backend.services.m2_engine import M2Engine
 
@@ -45,16 +46,25 @@ def resolve_plan(plan: dict) -> dict:
     return resolved
 
 
-_TOPIC_CONCEPTS = (set(CONCEPT_WORDS) | set(CONCEPT_PHRASES)) - {"fail", "turnon", "turnoff"}
 _TOPIC_WORDS = [k for ks in DOMAIN_KEYWORDS.values() for k in ks] + ["app", "application"]
+_TOPIC_WORDS += [w for c, ws in CONCEPT_WORDS.items() if c != "fail" for w in ws]
+_TOPIC_WORDS += [p for c, ps in CONCEPT_PHRASES.items() if c not in {"turnon", "turnoff"} for p in ps]
+_TOPIC_VOCAB = sorted({w for w in _TOPIC_WORDS if " " not in w and len(w) > 3})
+TOPIC_TYPO_CUTOFF = 0.8
 _DOMAIN_PATTERN = re.compile(r"\b(?:" + "|".join(sorted(map(re.escape, _TOPIC_WORDS), key=len, reverse=True)) + r")")
 
 
+def _strict_correct(word: str) -> str:
+    if len(word) < 4:
+        return word
+    match = difflib.get_close_matches(word, _TOPIC_VOCAB, n=1, cutoff=TOPIC_TYPO_CUTOFF)
+    return match[0] if match else word
+
+
 def has_topic_evidence(query: str) -> bool:
-    corrected = " ".join(_correct(w) for w in _base_normalize(query).split())
-    if _DOMAIN_PATTERN.search(query.lower()) or _DOMAIN_PATTERN.search(corrected):
-        return True
-    return bool(set(canonical_tokens(query)) & _TOPIC_CONCEPTS)
+    lowered = (query or "").lower().replace("wi-fi", "wifi")
+    corrected = " ".join(_strict_correct(w) for w in _base_normalize(lowered).split())
+    return bool(_DOMAIN_PATTERN.search(lowered) or _DOMAIN_PATTERN.search(corrected))
 
 
 def no_context_response() -> dict:

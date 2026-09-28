@@ -667,7 +667,7 @@ def _call_llm_for_structure(
         return None
 
     try:
-        from openai import OpenAI
+        from backend.services.llm_guard import chat_json
         prompt_template = load_structure_prompt()
         prompt = (
             prompt_template
@@ -678,21 +678,13 @@ def _call_llm_for_structure(
             .replace("{siis_content}", siis_content[:2000] if siis_content else "None available")
         )
 
-        client = OpenAI(
-            api_key=api_key,
-            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        )
-        response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
-            messages=[
+        content = chat_json(
+            [
                 {"role": "system", "content": "You are a Samsung Diagnostic Engine. Output ONLY valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            response_format={"type": "json_object"},
             temperature=0.2,
-            timeout=15
         )
-        content = response.choices[0].message.content
         if content:
             import json_repair
             data = json_repair.loads(content)
