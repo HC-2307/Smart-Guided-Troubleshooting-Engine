@@ -79,7 +79,7 @@ def _classify_domain(query: str) -> str:
         for kw in kws:
             if re.search(r"\b" + re.escape(kw) + r"\b", q_lower):
                 scores[domain] += 2
-            elif kw in q_lower:
+            elif re.search(r"\b" + re.escape(kw), q_lower):
                 scores[domain] += 1
 
     best_domain = max(scores, key=scores.get)

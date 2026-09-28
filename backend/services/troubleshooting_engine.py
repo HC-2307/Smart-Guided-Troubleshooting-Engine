@@ -65,26 +65,39 @@ def find_matching_siis(query: str) -> Optional[Dict[str, Any]]:
     responses = load_siis_data()
     q_clean = re.sub(r"^[0-9]+[\.\)]\s*", "", query.lower()).strip().strip('"')
 
-    # 1. Exact or substring match on original query
+    # 1. Exact or substring match on original query (substring only for long queries)
     for item in responses:
         orig = re.sub(r"^[0-9]+[\.\)]\s*", "", item.get("original_query", "").lower()).strip().strip('"')
-        if orig in q_clean or q_clean in orig:
+        if orig == q_clean or (len(q_clean.split()) >= SIIS_MIN_SUBSTRING_WORDS and (orig in q_clean or q_clean in orig)):
             return item.get("siis_response")
 
-    # 2. Token overlap similarity match
-    q_words = set(re.findall(r"\w+", q_clean))
+    # 2. Content-word overlap match
+    q_words = _content_words(q_clean)
     best_match = None
     best_overlap = 0
 
     for item in responses:
-        orig = item.get("original_query", "").lower()
-        orig_words = set(re.findall(r"\w+", orig))
+        orig_words = _content_words(item.get("original_query", "").lower())
         overlap = len(q_words.intersection(orig_words))
-        if overlap > best_overlap and overlap >= 4:
+        if overlap > best_overlap and overlap >= 4 and overlap >= SIIS_MIN_COVERAGE * len(q_words):
             best_overlap = overlap
             best_match = item.get("siis_response")
 
     return best_match
+
+
+SIIS_MIN_SUBSTRING_WORDS = 6
+SIIS_MIN_COVERAGE = 0.5
+SIIS_STOPWORDS = {
+    "the", "a", "an", "my", "i", "me", "is", "are", "was", "it", "its", "and", "or", "to", "of", "on", "in", "at",
+    "for", "with", "when", "so", "but", "this", "that", "be", "have", "has", "had", "do", "does", "did", "can",
+    "what", "how", "why", "not", "no", "am", "i'm", "im", "any", "all", "even", "just", "from", "by", "as", "if",
+    "then", "than", "too", "very", "also", "again", "about", "after", "before", "while", "into", "out", "up",
+}
+
+
+def _content_words(text: str) -> set:
+    return {w for w in re.findall(r"\w+", text) if len(w) > 2 and w not in SIIS_STOPWORDS}
 
 
 def format_title(raw_title: str, domain: str) -> str:
