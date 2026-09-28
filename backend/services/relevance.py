@@ -102,6 +102,7 @@ def _ask_llm(query: str) -> str:
         base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         max_retries=0,
     )
+    effort = os.getenv("LLM_REASONING_EFFORT", "").strip()
     response = client.chat.completions.create(
         model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
         messages=[{"role": "user", "content": _prompt().replace("{user_query}", query)}],
@@ -109,6 +110,7 @@ def _ask_llm(query: str) -> str:
         temperature=0,
         max_tokens=20,
         timeout=settings.relevance_llm_timeout_seconds,
+        **({"reasoning_effort": effort} if effort else {}),
     )
     return response.choices[0].message.content or ""
 

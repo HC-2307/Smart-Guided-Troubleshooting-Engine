@@ -216,6 +216,7 @@ def test_llm_client_fails_fast_without_retries(monkeypatch):
 
         def create(self, **kwargs):
             seen["timeout"] = kwargs["timeout"]
+            seen["reasoning_effort"] = kwargs.get("reasoning_effort")
             raise openai.APIConnectionError(request=None)
 
     monkeypatch.setattr(openai, "OpenAI", FakeClient)
@@ -223,3 +224,9 @@ def test_llm_client_fails_fast_without_retries(monkeypatch):
         relevance._ask_llm("tell me a joke")
     assert seen["max_retries"] == 0
     assert seen["timeout"] == relevance.settings.relevance_llm_timeout_seconds
+    assert seen["reasoning_effort"] is None
+
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "none")
+    with pytest.raises(openai.APIConnectionError):
+        relevance._ask_llm("tell me a joke")
+    assert seen["reasoning_effort"] == "none"
