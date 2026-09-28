@@ -177,9 +177,9 @@ Dockerfile, docker-compose.yml
 
 ## Team
 
-| Role | Area |
-|---|---|
-| M1 | LLM and query enrichment, plan structuring |
-| M2 | Catalog and deeplink matching |
-| M3 | Backend API, orchestration, cache, validation, Docker, integration tests |
-| M4 | Frontend, evaluation, demo |
+| Role | Member | Area |
+|---|---|---|
+| M1 | Arav | LLM and query enrichment, plan structuring |
+| M2 | Geetika | Catalog and deeplink matching |
+| M3 | Harshit | Backend API, orchestration, cache, validation, Docker, integration tests |
+| M4 | Asmi | Frontend, evaluation, demo |
