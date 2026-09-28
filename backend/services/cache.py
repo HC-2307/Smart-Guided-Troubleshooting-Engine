@@ -15,6 +15,7 @@ from backend.services.query_enrichment import _classify_domain as classify_domai
 from backend.services.text_similarity import QueryFingerprint, facets_conflict, fingerprint, similarity
 
 logger = logging.getLogger("m3")
+CACHE_FILE_VERSION = 2
 
 
 def _normalize(query: str) -> str:
@@ -60,6 +61,7 @@ class CacheLookup:
     tier: Optional[str]
     score: float = 0.0
     matched_query: Optional[str] = None
+    entry_id: Optional[int] = None
 
 
 class SemanticCache:
@@ -119,7 +121,6 @@ class SemanticCache:
                     return self._hit(entry_id, "exact", 1.0, query)
                 found = self._semantic_match(fp, evidence, self.clock())
                 if found is not None:
-                    self._alias(_normalize(query), found[0])
                     return self._hit(*found)
 
         with self._lock:
@@ -198,7 +199,7 @@ class SemanticCache:
         os.makedirs(os.path.dirname(target), exist_ok=True)
         temp = f"{target}.tmp"
         with open(temp, "w", encoding="utf-8") as handle:
-            json.dump({"version": 1, "entries": records}, handle, ensure_ascii=False)
+            json.dump({"version": CACHE_FILE_VERSION, "entries": records}, handle, ensure_ascii=False)
         os.replace(temp, target)
         with self._lock:
             self.dirty = False
@@ -209,9 +210,13 @@ class SemanticCache:
             return 0
         try:
             with open(path, encoding="utf-8") as handle:
-                records = json.load(handle)["entries"]
+                payload = json.load(handle)
+            records = payload["entries"]
         except (OSError, ValueError, KeyError, TypeError) as exc:
             logger.warning("cache file %s unreadable, starting empty: %r", path, exc)
+            return 0
+        if payload.get("version") != CACHE_FILE_VERSION:
+            logger.warning("cache file %s was written by an older version, starting empty", path)
             return 0
         now, loaded = self.clock(), 0
         for record in records:
@@ -276,6 +281,11 @@ class SemanticCache:
                 self._counters[reason] += 1
         return best
 
+    def confirm(self, query: str, hit: CacheLookup) -> None:
+        with self._lock:
+            if hit.entry_id is not None and hit.tier != "exact" and self._alive(hit.entry_id, self.clock()):
+                self._alias(_normalize(query), hit.entry_id)
+
     def _alias(self, exact_key: str, entry_id: int) -> None:
         if exact_key in self._exact:
             return
@@ -285,7 +295,7 @@ class SemanticCache:
     def _hit(self, entry_id: int, tier: str, score: float, matched: str) -> CacheLookup:
         self._entries.move_to_end(entry_id)
         self._counters[tier] += 1
-        return CacheLookup(self._entries[entry_id].response, tier, round(score, 4), matched)
+        return CacheLookup(self._entries[entry_id].response, tier, round(score, 4), matched, entry_id)
 
     def _alive(self, entry_id: int, now: float) -> bool:
         entry = self._entries.get(entry_id)
@@ -324,6 +334,10 @@ def lookup(query: str) -> CacheLookup:
 
 def store(query: str, response: dict, variations: Optional[list[str]] = None, pinned: bool = False) -> None:
     _default.store(query, response, variations, pinned)
+
+
+def confirm(query: str, hit: CacheLookup) -> None:
+    _default.confirm(query, hit)
 
 
 def contains(query: str) -> bool:

@@ -68,7 +68,7 @@ def test_corrupt_cache_file_starts_empty_without_crashing(tmp_path):
 def test_bad_records_are_skipped_and_good_ones_kept(tmp_path):
     path = tmp_path / "cache.json"
     good = {"query": "turn on bluetooth", "response": RESPONSE, "variations": [], "pinned": True, "expires_at": 0}
-    path.write_text(json.dumps({"version": 1, "entries": [{"query": "missing fields"}, good]}), encoding="utf-8")
+    path.write_text(json.dumps({"version": cache.CACHE_FILE_VERSION, "entries": [{"query": "missing fields"}, good]}), encoding="utf-8")
     fresh = SemanticCache()
     assert fresh.load(str(path)) == 1
     assert fresh.contains("turn on bluetooth")
@@ -163,3 +163,20 @@ def test_restart_round_trip_through_the_app_lifespan(monkeypatch, tmp_path):
     with TestClient(main.app) as client:
         response = client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
     assert response.headers["X-Cache"] == "exact"
+
+
+def test_cache_file_from_an_older_version_is_ignored(tmp_path):
+    path = tmp_path / "cache.json"
+    stale = {"query": "change phone to light mode", "response": RESPONSE, "variations": [], "pinned": True, "expires_at": 0}
+    path.write_text(json.dumps({"version": 1, "entries": [stale]}), encoding="utf-8")
+    fresh = SemanticCache()
+    assert fresh.load(str(path)) == 0
+    assert not fresh.contains("change phone to light mode")
+
+
+def test_saved_file_carries_the_current_version(tmp_path):
+    path = tmp_path / "cache.json"
+    store = SemanticCache()
+    store.store("turn on bluetooth", RESPONSE)
+    store.save(str(path))
+    assert json.loads(path.read_text(encoding="utf-8"))["version"] == cache.CACHE_FILE_VERSION

@@ -89,3 +89,8 @@ def test_domain_keywords_match_word_starts_not_word_fragments(query, domain):
 @pytest.mark.parametrize("query", ["'; DROP TABLE users; --", "make everything bigger and simpler to use", "the drop was huge"])
 def test_word_fragments_and_short_words_are_not_topic_evidence(query):
     assert not has_topic_evidence(query)
+
+
+@pytest.mark.parametrize("query", ["change phone to light mode", "change to light mode"])
+def test_known_words_are_not_typo_corrected_into_topic_words(query):
+    assert not has_topic_evidence(query)

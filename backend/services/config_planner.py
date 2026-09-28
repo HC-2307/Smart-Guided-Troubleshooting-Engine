@@ -119,19 +119,22 @@ def _dense_match(query: str) -> Optional[Match]:
     if not REQUEST.search((query or "").lower()) or not ensure_dense_index():
         return None
     results = dense_index.search(query, k=20)
-    if not results:
-        return None
-    best_score, best = results[0]
-    feature = _feature(best)
-    runner_up = next((sc for sc, e in results if _feature(e) != feature), 0.0)
-    margin = best_score - runner_up
-    if best_score < settings.dense_min_score or margin < settings.dense_min_gap:
-        return None
-    candidates = [e for e in _index()[0] if _feature(e) == feature]
-    chosen = _pick_by_polarity(candidates, polarity(query))
-    if chosen is None:
-        return None
-    return Match(chosen, round(best_score, 4), 0.0, round(margin, 4), "dense")
+    wanted, tried = polarity(query), set()
+    for position, (score, entry) in enumerate(results):
+        if score < settings.dense_min_score:
+            return None
+        feature = _feature(entry)
+        if feature in tried:
+            continue
+        tried.add(feature)
+        runner_up = next((sc for sc, e in results[position + 1:] if _feature(e) not in tried), 0.0)
+        margin = score - runner_up
+        if margin < settings.dense_min_gap:
+            return None
+        chosen = _pick_by_polarity([e for e in _index()[0] if _feature(e) == feature], wanted)
+        if chosen is not None:
+            return Match(chosen, round(score, 4), 0.0, round(margin, 4), "dense")
+    return None
 
 
 def _feature(entry: dict) -> str:

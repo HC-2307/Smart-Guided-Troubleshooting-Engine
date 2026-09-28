@@ -6,6 +6,7 @@ import threading
 from backend.schemas.troubleshoot import TroubleshootResponse
 from backend.config import BASE_DIR, settings
 from backend.services import cache, telemetry
+from backend.services.config_planner import match as settings_match
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
 from backend.services.relevance import check_relevance, offline_relevance
@@ -76,6 +77,8 @@ def _troubleshoot(query: str, siis_response: dict | None) -> TroubleshootRespons
 
     hit = _cache_lookup(query, trace) if siis_response is None else None
     hit = hit if hit is not None and hit.response is not None else None
+    if hit is not None and hit.tier != "exact" and settings_match(query) is not None:
+        hit = None
     if siis_response is None:
         fast_accept = False
         if hit is not None and not settings.relevance_llm_on_cache_hit:
@@ -88,6 +91,7 @@ def _troubleshoot(query: str, siis_response: dict | None) -> TroubleshootRespons
 
     if hit is not None:
         trace.cache_tier, trace.cache_score = hit.tier, hit.score
+        cache.confirm(query, hit)
         return TroubleshootResponse(**hit.response)
 
     with telemetry.stage("pipeline"):

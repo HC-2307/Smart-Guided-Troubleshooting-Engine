@@ -25,7 +25,7 @@ actions last, and a plan present exactly when there is no fallback.
 |---|---|---|---|
 | 1 | The spec's own request format (`"siis_response": "<raw text>"`) returned HTTP 422 | The request model only accepted an object | Accept raw text or an object; blank text counts as absent; over 20,000 characters is rejected |
 | 2 | All 20 official queries got the same generic "Screen display damage" plan without an LLM | The fallback ignored the reference text | New reference parser builds plans from the SIIS article's step sections; 15 of 20 references parse, and every parsed step's words appear in the source text. The rest keep the domain plans |
-| 3 | Settings questions (*"my phone time is in 24 hrs"*) got "System startup failure" | No settings plans existed | Catalog-grounded Configuration plans; keyword matching plus a meaning-based fallback (bge-small embeddings). Held-out settings requests: 6/19 correct with keywords only, 10/19 now, 0 wrong settings plans throughout |
+| 3 | Settings questions (*"my phone time is in 24 hrs"*) got "System startup failure" | No settings plans existed | Catalog-grounded Configuration plans; keyword matching plus a meaning-based fallback (bge-small embeddings). Held-out settings requests: 6/19 correct with keywords only, 11/19 now, 0 wrong settings plans throughout |
 | 4 | Short or unrelated queries borrowed an unrelated reference article (*"my"* matched "Email server not responding") | Reference matching accepted any substring and counted words like "the" and "my" | Substring matching only for long queries; overlap counts only meaningful words and must cover half the query. All 20 official queries still map to their own article |
 | 5 | *"change to light mode"* was classified as a performance problem | Domain keywords matched inside words ("c**hang**e", "prog**ram**") | Keywords match at word starts only; 0 of 146 official and paraphrase queries changed domain |
 | 6 | Topicless questions got an invented "System startup failure" plan | The fallback domain was used when nothing matched | New `no_siis_context` fallback when there is no reference text and no recognisable topic (typo tolerant) |
@@ -46,7 +46,7 @@ actions last, and a plan present exactly when there is no fallback.
 |---|---|---|
 | Official queries with a plan | 20/20, 1 distinct plan | 20/20, 10 distinct reference-grounded plans |
 | Troubleshooting paraphrases with a plan | 126/126 | 126/126 |
-| Held-out settings requests correct | 6/19 | 10/19, 0 wrong settings plans |
+| Held-out settings requests correct | 6/19 | 11/19, 0 wrong settings plans |
 | Off-topic traps given a plan | 5/30 | 1/30 |
 | Adversarial inputs causing an error or a URL leak | not tested | 0 |
 | Paraphrase cache hit rate (held out) | 80.4% | 80.4% |
@@ -61,7 +61,7 @@ actions last, and a plan present exactly when there is no fallback.
   embedding margins overlap with real typo and settings questions, so no threshold separates
   them without losing real questions. The LLM check handles them when a key is set.
 - The offline mode accepts *"the weather is too hot today"*.
-- 5 held-out settings requests still get no plan and 4 get a troubleshooting plan instead, when
+- 5 held-out settings requests still get no plan and 3 get a troubleshooting plan instead, when
   their wording shares nothing with the catalog (*"share my internet with my laptop"*).
 - 5 of 20 reference articles do not parse (glued source text or no step structure) and keep M1's
   domain plans.
@@ -78,3 +78,17 @@ python evaluation/benchmark_m3.py
 uvicorn backend.main:app --port 8000 &
 python evaluation/load_test.py http://localhost:8000 16 10
 ```
+
+## Follow-up: light-mode requests (found during manual testing)
+
+*"change phone to light mode"* returned "System startup failure", and the wrong plan then spread to
+*"change to light mode"* through the cache. Three causes, all fixed:
+
+| Cause | Fix |
+|---|---|
+| Typo correction turned the real word "change" into "charge", faking a battery topic | Only words that are not already known (catalog vocabulary, stopwords, intent words) are corrected |
+| The settings planner stopped when its top match ("Turn on as scheduled", a Dark-mode sub-setting) could not be used | It now tries the next setting above the score minimum ("Dark mode settings") |
+| A similar cached answer was served before the settings planner ran, and the lookup pinned it to the new query | A confident settings match now wins over a similarity hit, and the alias is created only when a hit is actually served |
+
+Cache files written by older code are now ignored at startup (file `version` 2), so stale wrong
+answers do not survive an upgrade.

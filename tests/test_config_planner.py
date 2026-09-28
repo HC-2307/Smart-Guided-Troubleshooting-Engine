@@ -118,10 +118,33 @@ def test_siis_reference_bypasses_the_catalog_planner():
 
 
 def test_settings_plan_is_cached_and_opposite_toggle_is_not_reused():
-    client.post("/v1/troubleshoot", json={"query": "turn on bluetooth"})
-    assert client.post("/v1/troubleshoot", json={"query": "turn on bluetooth please"}).headers["X-Cache"] != "miss"
+    first = client.post("/v1/troubleshoot", json={"query": "turn on bluetooth"}).json()
+    assert client.post("/v1/troubleshoot", json={"query": "turn on bluetooth"}).headers["X-Cache"] == "exact"
+    please = client.post("/v1/troubleshoot", json={"query": "turn on bluetooth please"})
+    assert please.headers["X-Planner"] == "catalog"
+    assert please.json()["contexts"] == first["contexts"]
     off = client.post("/v1/troubleshoot", json={"query": "turn off bluetooth"})
     assert off.json()["contexts"][0]["actions"][0]["actionName"] == "Disable Bluetooth"
+
+
+def test_settings_match_beats_a_wrong_plan_cached_for_a_similar_query():
+    from backend.services import cache
+
+    wrong = client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"}).json()
+    cache.store("change phone to light mode", wrong)
+    assert cache.lookup("change to light mode").response == wrong
+    response = client.post("/v1/troubleshoot", json={"query": "change to light mode"})
+    assert response.headers["X-Planner"] == "catalog"
+    assert "Dark" in response.json()["contexts"][0]["title"]
+    assert cache.lookup("change to light mode").tier == "exact"
+
+
+def test_light_mode_request_with_phone_gets_the_dark_mode_page():
+    response = client.post("/v1/troubleshoot", json={"query": "change phone to light mode"})
+    body = response.json()
+    if response.headers["X-Planner"] != "catalog":
+        pytest.skip("embedding model not available offline")
+    assert body["contexts"][0]["title"] == "Dark mode settings"
 
 
 def test_catalog_plan_does_not_count_m1_llm_calls(fake_llm):

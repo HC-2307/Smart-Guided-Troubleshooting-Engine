@@ -204,6 +204,7 @@ def test_query_answered_by_similarity_keeps_the_same_answer_after_new_entries():
     store.store("my phone battery drains fast", first)
     hit = store.lookup("my phone battery is draining fast")
     assert hit.response == first and hit.tier == "semantic"
+    store.confirm("my phone battery is draining fast", hit)
     store.store("phone battery draining fast", second)
     again = store.lookup("my phone battery is draining fast")
     assert again.response == first and again.tier == "exact"
@@ -214,6 +215,15 @@ def test_alias_is_removed_with_its_entry():
 
     store = SemanticCache(max_entries=1)
     store.store("my phone battery drains fast", {"contexts": [{"title": "first"}]})
-    store.lookup("my phone battery is draining fast")
+    store.confirm("my phone battery is draining fast", store.lookup("my phone battery is draining fast"))
     store.store("my screen keeps flickering", {"contexts": [{"title": "screen"}]})
     assert store.lookup("my phone battery is draining fast").response is None
+
+
+def test_lookup_alone_does_not_pin_an_alias():
+    from backend.services.cache import SemanticCache
+
+    store = SemanticCache()
+    store.store("my phone battery drains fast", {"contexts": [{"title": "first"}]})
+    assert store.lookup("my phone battery is draining fast").tier == "semantic"
+    assert store.lookup("my phone battery is draining fast").tier == "semantic"

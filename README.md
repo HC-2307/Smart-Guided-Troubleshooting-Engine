@@ -214,7 +214,7 @@ no LLM):
 |---|---|
 | Official queries with a plan | 20/20, 10 distinct reference-grounded plans |
 | Troubleshooting paraphrases with a plan | 126/126 |
-| Settings requests (40, 19 held out) | dev 21/21 correct; held-out 10/19 correct, 0 wrong settings plans |
+| Settings requests (40, 19 held out) | dev 21/21 correct; held-out 11/19 correct, 0 wrong settings plans |
 | Off-topic questions given a plan | 1/30 |
 | Concurrent load, 16 workers, warm server | 181 requests/s, 580/580 OK, p95 45 ms, identical answers for identical queries |
 | Slow LLM provider (live NVIDIA free tier) | every request under 8 s (was 30–60 s before the LLM guard) |

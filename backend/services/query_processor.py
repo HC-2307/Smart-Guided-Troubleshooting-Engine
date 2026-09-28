@@ -10,7 +10,7 @@ from typing import Optional
 from backend.services import telemetry
 from backend.services.config_planner import build_plan
 from backend.services.query_enrichment import DOMAIN_KEYWORDS, enrich_query
-from backend.services.text_similarity import CONCEPT_PHRASES, CONCEPT_WORDS, _base_normalize
+from backend.services.text_similarity import CONCEPT_PHRASES, CONCEPT_WORDS, _base_normalize, _known_words
 from backend.services.troubleshooting_engine import find_matching_siis, generate_troubleshooting_plan
 from backend.services.m2_engine import M2Engine
 
@@ -58,7 +58,7 @@ TOPIC_TYPO_MIN_LENGTH = 5
 
 
 def _strict_correct(word: str) -> str:
-    if len(word) < TOPIC_TYPO_MIN_LENGTH:
+    if len(word) < TOPIC_TYPO_MIN_LENGTH or word in _known_words():
         return word
     match = difflib.get_close_matches(word, _TOPIC_VOCAB, n=1, cutoff=TOPIC_TYPO_CUTOFF)
     return match[0] if match else word
