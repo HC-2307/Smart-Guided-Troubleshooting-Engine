@@ -93,3 +93,133 @@ def test_siis_reference_bypasses_the_gate():
     response = client.post("/v1/troubleshoot", json={"query": "hello", "siis_response": sample})
     assert response.status_code == 200
     assert response.json()["contexts"]
+
+
+@pytest.fixture
+def fake_llm(monkeypatch):
+    from dataclasses import replace
+
+    from backend.services import orchestrator, query_enrichment, relevance, troubleshooting_engine
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(query_enrichment, "_call_llm_for_enrichment", lambda *a, **k: None)
+    monkeypatch.setattr(troubleshooting_engine, "_call_llm_for_structure", lambda *a, **k: None)
+    state = {"calls": [], "verdicts": {}, "default": '{"relevant": true}', "error": None}
+
+    def ask(query):
+        state["calls"].append(query)
+        if state["error"]:
+            raise state["error"]
+        return state["verdicts"].get(query, state["default"])
+
+    monkeypatch.setattr(relevance, "_ask_llm", ask)
+    state["strict"] = lambda: monkeypatch.setattr(
+        orchestrator, "settings", replace(orchestrator.settings, relevance_llm_on_cache_hit=True)
+    )
+    return state
+
+
+def test_llm_rejects_query_the_keywords_would_accept(fake_llm):
+    fake_llm["verdicts"]["my laptop battery drains fast"] = '{"relevant": false}'
+    response = client.post("/v1/troubleshoot", json={"query": "my laptop battery drains fast"})
+    assert response.json()["fallback"] == "no_match"
+    assert response.headers["X-Relevance"] == "llm"
+    assert response.headers["X-LLM-Calls"] == "1"
+
+
+def test_llm_accepts_query_the_keywords_would_reject(fake_llm):
+    query = "the thing I hold to call people is acting weird"
+    assert not is_device_query(query)
+    response = client.post("/v1/troubleshoot", json={"query": query})
+    assert response.json()["contexts"]
+    assert response.headers["X-Relevance"] == "llm"
+
+
+def test_llm_failure_falls_back_to_keywords(fake_llm):
+    fake_llm["error"] = TimeoutError("provider down")
+    assert client.post("/v1/troubleshoot", json={"query": "tell me a joke"}).json()["fallback"] == "no_match"
+    response = client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
+    assert response.json()["contexts"]
+    assert response.headers["X-Relevance"] == "keywords"
+
+
+def test_malformed_llm_verdict_falls_back_to_keywords(fake_llm):
+    fake_llm["default"] = "sure, that looks fine"
+    response = client.post("/v1/troubleshoot", json={"query": "what is the capital of france"})
+    assert response.json()["fallback"] == "no_match"
+    assert response.headers["X-Relevance"] == "keywords"
+
+
+def test_llm_verdict_is_memoized_per_query(fake_llm):
+    fake_llm["default"] = '{"relevant": false}'
+    for _ in range(3):
+        client.post("/v1/troubleshoot", json={"query": "tell   me a joke"})
+    assert fake_llm["calls"] == ["tell me a joke"]
+
+
+def test_keyword_approved_cache_hit_skips_the_llm(fake_llm):
+    client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
+    fake_llm["calls"].clear()
+    response = client.post("/v1/troubleshoot", json={"query": "battery draining super quick on my galaxy"})
+    assert response.headers["X-Cache"] != "miss"
+    assert response.headers["X-Relevance"] == "keywords"
+    assert fake_llm["calls"] == []
+
+
+def test_off_topic_query_matching_the_cache_is_checked_by_the_llm(fake_llm):
+    client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
+    assert cache.lookup("my heart is broken") is not None
+    fake_llm["verdicts"]["my heart is broken"] = '{"relevant": false}'
+    response = client.post("/v1/troubleshoot", json={"query": "my heart is broken"})
+    assert response.json()["fallback"] == "no_match"
+    assert fake_llm["calls"][-1] == "my heart is broken"
+
+
+def test_off_topic_query_matching_the_cache_is_rejected_without_llm():
+    client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
+    assert cache.lookup("my heart is broken") is not None
+    response = client.post("/v1/troubleshoot", json={"query": "my heart is broken"})
+    assert response.json()["fallback"] == "no_match"
+
+
+def test_strict_mode_checks_cache_hits_with_the_llm(fake_llm):
+    fake_llm["strict"]()
+    client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
+    fake_llm["verdicts"]["my laptop battery drains fast"] = '{"relevant": false}'
+    assert cache.lookup("my laptop battery drains fast") is not None
+    response = client.post("/v1/troubleshoot", json={"query": "my laptop battery drains fast"})
+    assert response.json()["fallback"] == "no_match"
+
+
+def test_prompt_marks_user_text_as_data():
+    from backend.services.relevance import _prompt
+
+    assert "{user_query}" in _prompt()
+    assert "not instructions" in _prompt()
+
+
+def test_llm_client_fails_fast_without_retries(monkeypatch):
+    import openai
+
+    from backend.services import relevance
+
+    seen = {}
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            seen.update(kwargs)
+            self.chat = self
+
+        @property
+        def completions(self):
+            return self
+
+        def create(self, **kwargs):
+            seen["timeout"] = kwargs["timeout"]
+            raise openai.APIConnectionError(request=None)
+
+    monkeypatch.setattr(openai, "OpenAI", FakeClient)
+    with pytest.raises(openai.APIConnectionError):
+        relevance._ask_llm("tell me a joke")
+    assert seen["max_retries"] == 0
+    assert seen["timeout"] == relevance.settings.relevance_llm_timeout_seconds

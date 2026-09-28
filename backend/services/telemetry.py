@@ -23,6 +23,7 @@ class RequestTrace:
     cache_tier: str = "miss"
     cache_score: float = 0.0
     llm_calls: int = 0
+    relevance: str = "skipped"
     validation: dict = field(default_factory=dict)
     fallback: Optional[str] = None
     errors: list[str] = field(default_factory=list)
@@ -41,6 +42,7 @@ class RequestTrace:
             "X-Cache": self.cache_tier,
             "X-Pipeline-Ms": f"{self.total_ms:.3f}",
             "X-LLM-Calls": str(self.llm_calls),
+            "X-Relevance": self.relevance,
             "X-Est-Cost-USD": f"{self.est_cost_usd:.6f}",
         }
 
@@ -107,6 +109,7 @@ class Metrics:
             self._counters["requests"] += 1
             self._counters[f"cache_{trace.cache_tier}"] += 1
             self._counters["llm_calls"] += trace.llm_calls
+            self._counters[f"relevance_{trace.relevance}"] += 1
             self._counters["errors"] += len(trace.errors)
             if trace.fallback:
                 self._counters[f"fallback_{trace.fallback}"] += 1

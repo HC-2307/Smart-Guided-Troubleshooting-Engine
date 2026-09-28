@@ -34,6 +34,8 @@ class Settings:
     seed_variations: bool = _env_bool("SEMANTIC_CACHE_SEED_VARIATIONS", True)
     max_query_chars: int = _env_int("MAX_QUERY_CHARS", 2000)
     llm_cost_per_call_usd: float = _env_float("LLM_COST_PER_CALL_USD", 0.0004)
+    relevance_llm_timeout_seconds: float = _env_float("RELEVANCE_LLM_TIMEOUT_SECONDS", 5.0)
+    relevance_llm_on_cache_hit: bool = _env_bool("RELEVANCE_LLM_ON_CACHE_HIT", False)
 
 
 settings = Settings()

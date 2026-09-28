@@ -13,7 +13,8 @@ def deterministic_pipeline(monkeypatch):
     if os.getenv("M3_TESTS_ALLOW_LLM") != "1":
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    from backend.services import cache, telemetry
+    from backend.services import cache, relevance, telemetry
+    relevance._llm_verdict.cache_clear()
     cache.clear()
     telemetry.metrics.reset()
     yield

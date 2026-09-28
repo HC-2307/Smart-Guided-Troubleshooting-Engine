@@ -1,8 +1,16 @@
 import difflib
+import logging
+import os
 import re
 from functools import lru_cache
+from pathlib import Path
 
+from backend.config import BASE_DIR, settings
+from backend.services import telemetry
 from backend.services.text_similarity import _base_normalize
+
+logger = logging.getLogger("m3")
+PROMPT_PATH = BASE_DIR / "prompts" / "relevance_prompt.txt"
 
 TYPO_CUTOFF = 0.85
 MODEL_NAME = re.compile(r"\b(?:[asmzf]\d{1,2}|note\s?\d{1,2}|tab\s?[as]\d*)\b")
@@ -79,3 +87,56 @@ def is_device_query(query: str) -> bool:
         return True
     symptoms = {m.group(0) for m in symptom.finditer(text)}
     return bool((context.search(text) or MODEL_NAME.search(text)) and symptoms)
+
+
+@lru_cache(maxsize=1)
+def _prompt() -> str:
+    return Path(PROMPT_PATH).read_text(encoding="utf-8")
+
+
+def _ask_llm(query: str) -> str:
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY"),
+        base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        max_retries=0,
+    )
+    response = client.chat.completions.create(
+        model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
+        messages=[{"role": "user", "content": _prompt().replace("{user_query}", query)}],
+        response_format={"type": "json_object"},
+        temperature=0,
+        max_tokens=20,
+        timeout=settings.relevance_llm_timeout_seconds,
+    )
+    return response.choices[0].message.content or ""
+
+
+def _parse_verdict(content: str) -> bool:
+    import json_repair
+
+    data = json_repair.loads(content)
+    if not isinstance(data, dict) or not isinstance(data.get("relevant"), bool):
+        raise ValueError(f"unexpected relevance verdict: {content!r}")
+    return data["relevant"]
+
+
+@lru_cache(maxsize=2048)
+def _llm_verdict(normalized_query: str) -> bool:
+    telemetry.current().llm_calls += 1
+    return _parse_verdict(_ask_llm(normalized_query))
+
+
+def check_relevance(query: str) -> bool:
+    trace = telemetry.current()
+    if telemetry.llm_provider_configured():
+        try:
+            verdict = _llm_verdict(" ".join(query.split()))
+            trace.relevance = "llm"
+            return verdict
+        except Exception as exc:
+            trace.errors.append(f"relevance_llm: {exc!r}")
+            logger.warning("request %s relevance llm failed, using keywords: %r", trace.request_id, exc)
+    trace.relevance = "keywords"
+    return is_device_query(query)

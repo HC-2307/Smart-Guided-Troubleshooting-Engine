@@ -1,10 +1,11 @@
 import logging
 
 from backend.schemas.troubleshoot import TroubleshootResponse
+from backend.config import settings
 from backend.services import cache, telemetry
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
-from backend.services.relevance import is_device_query
+from backend.services.relevance import check_relevance, is_device_query
 from backend.services.validator import check_no_url_leakage
 
 logger = logging.getLogger("m3")
@@ -32,19 +33,24 @@ def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.Re
 def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootResponse:
     trace = telemetry.current()
 
-    if siis_response is None and not is_device_query(query):
-        trace.fallback = "no_match"
-        return TroubleshootResponse(contexts=[], fallback="no_match")
-
     hit = _cache_lookup(query, trace) if siis_response is None else None
-    if hit is not None and hit.response is not None:
+    hit = hit if hit is not None and hit.response is not None else None
+    if siis_response is None:
+        fast_accept = hit is not None and not settings.relevance_llm_on_cache_hit and is_device_query(query)
+        if fast_accept:
+            trace.relevance = "keywords"
+        elif not check_relevance(query):
+            trace.fallback = "no_match"
+            return TroubleshootResponse(contexts=[], fallback="no_match")
+
+    if hit is not None:
         trace.cache_tier, trace.cache_score = hit.tier, hit.score
         return TroubleshootResponse(**hit.response)
 
     with telemetry.stage("pipeline"):
         plan = process_query(query, siis_response)
     if telemetry.llm_provider_configured():
-        trace.llm_calls = 2
+        trace.llm_calls += 2
 
     with telemetry.stage("contract_validation"):
         repaired, report = validate_and_repair(plan)

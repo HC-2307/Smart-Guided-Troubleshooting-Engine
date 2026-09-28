@@ -111,9 +111,21 @@ Response (shortened):
 ```
 
 If nothing viable matches, the response is `{"contexts": [], "fallback": "no_match"}`. The
-engine never invents a plan or a deeplink. Queries that are not about a device (for example
-*"what is the capital of france"*) are rejected with `no_match` before the cache or pipeline
-runs (`backend/services/relevance.py`). A request with `siis_response` skips this check.
+engine never invents a plan or a deeplink.
+
+Queries that are not about a Galaxy device (for example *"what is the capital of france"* or
+*"my laptop battery drains fast"*) are also rejected with `no_match`
+(`backend/services/relevance.py`, prompt in `prompts/relevance_prompt.txt`):
+
+- If an LLM key is set, the LLM decides. Verdicts are memoized per query, and the call fails
+  fast (no retries, `RELEVANCE_LLM_TIMEOUT_SECONDS`).
+- If no key is set, or the LLM call fails or returns an unusable verdict, a keyword check
+  decides instead.
+- A cache hit that passes the keyword check is served without an LLM call, to keep cache-hit
+  latency low. Set `RELEVANCE_LLM_ON_CACHE_HIT=true` to have the LLM check cache hits too.
+- A request with `siis_response` skips the check.
+
+The `X-Relevance` response header shows which check decided: `llm`, `keywords` or `skipped`.
 
 Response headers:
 
@@ -123,6 +135,7 @@ Response headers:
 | `X-Cache` | `exact`, `semantic`, `variation`, or `miss` |
 | `X-Pipeline-Ms` | Server-side processing time |
 | `X-LLM-Calls`, `X-Est-Cost-USD` | Per-request LLM usage and estimated cost |
+| `X-Relevance` | Which check accepted or rejected the query: `llm`, `keywords` or `skipped` |
 
 Errors: a blank or oversized query returns `422`. An unexpected failure returns `500` with
 `{"contexts": [], "fallback": "internal_error"}` and is logged with its request ID.
