@@ -48,6 +48,9 @@ uvicorn backend.main:app --port 8000
 docker compose up --build
 ```
 
+This starts both the API and the frontend. Open `http://localhost:5500` for the UI.
+`OPENAI_API_KEY` / `GEMINI_API_KEY` are passed through from your shell if set.
+
 In both cases the API is at `http://localhost:8000`. It works without any API key: the
 deterministic fallback handles enrichment and structuring.
 
