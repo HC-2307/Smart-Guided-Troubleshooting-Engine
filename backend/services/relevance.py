@@ -89,6 +89,12 @@ def is_device_query(query: str) -> bool:
     return bool((context.search(text) or MODEL_NAME.search(text)) and symptoms)
 
 
+
+def keyword_relevant(query: str) -> bool:
+    from backend.services.config_planner import match
+
+    return is_device_query(query) or match(query) is not None
+
 @lru_cache(maxsize=1)
 def _prompt() -> str:
     return Path(PROMPT_PATH).read_text(encoding="utf-8")
@@ -141,4 +147,4 @@ def check_relevance(query: str) -> bool:
             trace.errors.append(f"relevance_llm: {exc!r}")
             logger.warning("request %s relevance llm failed, using keywords: %r", trace.request_id, exc)
     trace.relevance = "keywords"
-    return is_device_query(query)
+    return keyword_relevant(query)

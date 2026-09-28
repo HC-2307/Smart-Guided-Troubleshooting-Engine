@@ -27,6 +27,7 @@ query ──► semantic cache ──hit─────────────�
 | Stage | Where | What it guarantees |
 |---|---|---|
 | Query enrichment | `backend/services/query_enrichment.py` | Normalised query and paraphrases. Uses an LLM if a key is set, otherwise a deterministic fallback. |
+| Settings plans | `backend/services/config_planner.py` | Settings requests (for example *"my phone time is in 24 hrs"*) get a Configuration plan built only from the matching catalog entry: its deeplink, switch label and description. Fault reports and weak matches are left to the troubleshooting path. |
 | Plan structuring | `backend/services/troubleshooting_engine.py` | Steps derived from reference text only. Critical actions ordered last. |
 | Deeplink matching | `backend/services/m2_engine.py`, `action_matcher.py`, `deeplink_resolver.py` | Deeplinks come only from `data/deeplinks.json`, matched on `description` / `message` / `qna_description`, never on the URI string. |
 | Semantic cache | `backend/services/cache.py`, `text_similarity.py` | Paraphrased queries hit the cache. Guards stop wrong reuse, for example front vs rear camera or Wi-Fi vs mobile data. |
@@ -130,6 +131,17 @@ Queries that are not about a Galaxy device (for example *"what is the capital of
 
 The `X-Relevance` response header shows which check decided: `llm`, `keywords` or `skipped`.
 
+### Settings requests
+
+When a query asks to change a setting rather than report a fault, and one catalog entry clearly
+matches it, the engine returns a `<Topic> Configuration` plan built only from that entry. For
+example, *"my phone time is in 24 hrs"* returns the **Switch Time Format** action with its catalog
+deeplink and the steps "Open the 24-hour time format settings page." and "Tap Use 24-hour format.".
+On/off requests pick the matching toggle entry ("turn off bluetooth" gives **Disable Bluetooth**).
+Queries with fault words (for example "not working", "keeps", "won't") or no clear match go
+through the normal troubleshooting path. A request with `siis_response` always uses the
+troubleshooting path.
+
 Response headers:
 
 | Header | Meaning |
@@ -139,6 +151,7 @@ Response headers:
 | `X-Pipeline-Ms` | Server-side processing time |
 | `X-LLM-Calls`, `X-Est-Cost-USD` | Per-request LLM usage and estimated cost |
 | `X-Relevance` | Which check accepted or rejected the query: `llm`, `keywords` or `skipped` |
+| `X-Planner` | Which planner built the plan: `catalog` (settings request), `m1` (troubleshooting) or `none` |
 
 Errors: a blank or oversized query returns `422`. An unexpected failure returns `500` with
 `{"contexts": [], "fallback": "internal_error"}` and is logged with its request ID.

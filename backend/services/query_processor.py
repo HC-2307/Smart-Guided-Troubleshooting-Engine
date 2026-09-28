@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from backend.services import telemetry
+from backend.services.config_planner import build_plan
 from backend.services.query_enrichment import enrich_query
 from backend.services.troubleshooting_engine import generate_troubleshooting_plan
 from backend.services.m2_engine import M2Engine
@@ -43,6 +44,14 @@ def resolve_plan(plan: dict) -> dict:
 
 
 def process_query(query: str, siis_response: Optional[dict] = None) -> dict:
+    if siis_response is None:
+        with telemetry.stage("config_plan"):
+            config_plan = build_plan(query)
+        if config_plan is not None:
+            telemetry.current().planner = "catalog"
+            return config_plan
+    telemetry.current().planner = "m1"
+
     with telemetry.stage("enrich"):
         enriched_query = enrich_query(query)
 

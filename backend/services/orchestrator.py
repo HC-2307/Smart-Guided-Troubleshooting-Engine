@@ -5,7 +5,7 @@ from backend.config import settings
 from backend.services import cache, telemetry
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
-from backend.services.relevance import check_relevance, is_device_query
+from backend.services.relevance import check_relevance, keyword_relevant
 from backend.services.validator import check_no_url_leakage
 
 logger = logging.getLogger("m3")
@@ -36,7 +36,7 @@ def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootR
     hit = _cache_lookup(query, trace) if siis_response is None else None
     hit = hit if hit is not None and hit.response is not None else None
     if siis_response is None:
-        fast_accept = hit is not None and not settings.relevance_llm_on_cache_hit and is_device_query(query)
+        fast_accept = hit is not None and not settings.relevance_llm_on_cache_hit and keyword_relevant(query)
         if fast_accept:
             trace.relevance = "keywords"
         elif not check_relevance(query):
@@ -49,7 +49,7 @@ def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootR
 
     with telemetry.stage("pipeline"):
         plan = process_query(query, siis_response)
-    if telemetry.llm_provider_configured():
+    if telemetry.llm_provider_configured() and trace.planner == "m1":
         trace.llm_calls += 2
 
     with telemetry.stage("contract_validation"):
