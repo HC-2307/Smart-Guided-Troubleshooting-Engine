@@ -726,7 +726,10 @@ def generate_troubleshooting_plan(
     # 2. Attempt LLM structure generation if provider is active
     raw_plan = _call_llm_for_structure(technical_query, domain, issue, context, siis_content)
 
-    # 3. Fallback to domain-specific grounded plan
+    # 3. Fallback: parse the reference text, else domain-specific grounded plan
+    if not raw_plan and siis_response:
+        from backend.services.reference_parser import parse_reference
+        raw_plan = parse_reference(siis_response, domain.capitalize())
     if not raw_plan:
         raw_plan = _build_domain_plan(domain, issue, technical_query, orig_query)
 

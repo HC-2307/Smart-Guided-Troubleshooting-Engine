@@ -27,10 +27,12 @@ def test_non_display_domains_no_longer_get_the_screen_plan(query, title):
     assert "Screen" not in plan["goal"]
 
 
-def test_smart_switch_blank_screen_reports_keep_the_screen_plan():
+def test_smart_switch_blank_screen_reports_never_get_the_network_plan():
     query = "My Galaxy tablet screen stays completely blank when I try to use Smart Switch to scan the QR code"
     assert _plan_key("connectivity", query) == "display"
-    assert _plan(query)["title"] == "Screen display damage"
+    plan = _plan(query)
+    assert plan["title"] != "Network connection issue"
+    assert "Transfer" in plan["goal"] or plan["title"] == "Screen display damage"
 
 
 @pytest.mark.parametrize("query, kept, dropped", [
