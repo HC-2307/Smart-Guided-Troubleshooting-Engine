@@ -1,13 +1,14 @@
 import json
 import logging
 import re
+import threading
 
 from backend.schemas.troubleshoot import TroubleshootResponse
 from backend.config import BASE_DIR, settings
 from backend.services import cache, telemetry
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
-from backend.services.relevance import check_relevance, keyword_relevant
+from backend.services.relevance import check_relevance, offline_relevance
 from backend.services.validator import check_no_url_leakage
 
 logger = logging.getLogger("m3")
@@ -32,16 +33,56 @@ def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.Re
         logger.warning("request %s cache store failed: %r", trace.request_id, exc)
 
 
+class _Flight:
+    def __init__(self) -> None:
+        self.done = threading.Event()
+        self.response: TroubleshootResponse | None = None
+        self.trace: telemetry.RequestTrace | None = None
+
+
+_flights: dict[str, _Flight] = {}
+_flights_lock = threading.Lock()
+
+
 def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootResponse:
+    if siis_response is not None:
+        return _troubleshoot(query, siis_response)
+    key = " ".join(query.lower().split())
+    with _flights_lock:
+        flight = _flights.get(key)
+        leader = flight is None
+        if leader:
+            flight = _flights[key] = _Flight()
+    if not leader:
+        if flight.done.wait(settings.coalesce_wait_seconds) and flight.response is not None:
+            trace = telemetry.current()
+            for field in ("relevance", "planner", "fallback", "validation"):
+                setattr(trace, field, getattr(flight.trace, field))
+            trace.cache_tier = "coalesced"
+            return flight.response.model_copy(deep=True)
+        return _troubleshoot(query, None)
+    try:
+        flight.response = _troubleshoot(query, None)
+        flight.trace = telemetry.current()
+        return flight.response
+    finally:
+        flight.done.set()
+        with _flights_lock:
+            _flights.pop(key, None)
+
+
+def _troubleshoot(query: str, siis_response: dict | None) -> TroubleshootResponse:
     trace = telemetry.current()
 
     hit = _cache_lookup(query, trace) if siis_response is None else None
     hit = hit if hit is not None and hit.response is not None else None
     if siis_response is None:
-        fast_accept = hit is not None and not settings.relevance_llm_on_cache_hit and keyword_relevant(query)
-        if fast_accept:
-            trace.relevance = "keywords"
-        elif not check_relevance(query):
+        fast_accept = False
+        if hit is not None and not settings.relevance_llm_on_cache_hit:
+            fast_accept, source = offline_relevance(query)
+            if fast_accept:
+                trace.relevance = source
+        if not fast_accept and not check_relevance(query):
             trace.fallback = "no_match"
             return TroubleshootResponse(contexts=[], fallback="no_match")
 

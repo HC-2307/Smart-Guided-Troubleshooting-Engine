@@ -120,14 +120,14 @@ def test_llm_failure_falls_back_to_keywords(fake_llm):
     assert client.post("/v1/troubleshoot", json={"query": "tell me a joke"}).json()["fallback"] == "no_match"
     response = client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
     assert response.json()["contexts"]
-    assert response.headers["X-Relevance"] == "keywords"
+    assert response.headers["X-Relevance"] in {"keywords", "semantic"}
 
 
 def test_malformed_llm_verdict_falls_back_to_keywords(fake_llm):
     fake_llm["default"] = "sure, that looks fine"
     response = client.post("/v1/troubleshoot", json={"query": "what is the capital of france"})
     assert response.json()["fallback"] == "no_match"
-    assert response.headers["X-Relevance"] == "keywords"
+    assert response.headers["X-Relevance"] in {"keywords", "semantic"}
 
 
 def test_llm_verdict_is_memoized_per_query(fake_llm):
@@ -142,31 +142,41 @@ def test_keyword_approved_cache_hit_skips_the_llm(fake_llm):
     fake_llm["calls"].clear()
     response = client.post("/v1/troubleshoot", json={"query": "battery draining super quick on my galaxy"})
     assert response.headers["X-Cache"] != "miss"
-    assert response.headers["X-Relevance"] == "keywords"
+    assert response.headers["X-Relevance"] in {"keywords", "semantic"}
     assert fake_llm["calls"] == []
 
 
-def test_off_topic_query_matching_the_cache_is_checked_by_the_llm(fake_llm):
-    client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
-    assert cache.lookup("my heart is broken") is not None
-    fake_llm["verdicts"]["my heart is broken"] = '{"relevant": false}'
-    response = client.post("/v1/troubleshoot", json={"query": "my heart is broken"})
-    assert response.json()["fallback"] == "no_match"
-    assert fake_llm["calls"][-1] == "my heart is broken"
+def _reject_offline(monkeypatch):
+    from backend.services import orchestrator, relevance
+
+    monkeypatch.setattr(orchestrator, "offline_relevance", lambda query: (False, "semantic"))
+    monkeypatch.setattr(relevance, "offline_relevance", lambda query: (False, "semantic"))
 
 
-def test_off_topic_query_matching_the_cache_is_rejected_without_llm():
+def test_cache_hit_rejected_offline_is_checked_by_the_llm(fake_llm, monkeypatch):
     client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
-    assert cache.lookup("my heart is broken") is not None
-    response = client.post("/v1/troubleshoot", json={"query": "my heart is broken"})
+    assert cache.lookup("my car battery drains really fast").response is not None
+    _reject_offline(monkeypatch)
+    fake_llm["verdicts"]["my car battery drains really fast"] = '{"relevant": false}'
+    response = client.post("/v1/troubleshoot", json={"query": "my car battery drains really fast"})
     assert response.json()["fallback"] == "no_match"
+    assert fake_llm["calls"][-1] == "my car battery drains really fast"
+
+
+def test_cache_hit_rejected_offline_is_never_served_without_llm(monkeypatch):
+    client.post("/v1/troubleshoot", json={"query": "My phone battery drains really fast"})
+    assert cache.lookup("my car battery drains really fast").response is not None
+    _reject_offline(monkeypatch)
+    response = client.post("/v1/troubleshoot", json={"query": "my car battery drains really fast"})
+    assert response.json()["fallback"] == "no_match"
+    assert response.headers["X-Cache"] == "miss"
 
 
 def test_strict_mode_checks_cache_hits_with_the_llm(fake_llm):
     fake_llm["strict"]()
     client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
     fake_llm["verdicts"]["my laptop battery drains fast"] = '{"relevant": false}'
-    assert cache.lookup("my laptop battery drains fast") is not None
+    assert cache.lookup("my laptop battery drains fast").response is not None
     response = client.post("/v1/troubleshoot", json={"query": "my laptop battery drains fast"})
     assert response.json()["fallback"] == "no_match"
 
@@ -218,3 +228,30 @@ def test_llm_client_fails_fast_without_retries(monkeypatch):
     assert seen["reasoning_effort"] == "none"
     assert seen["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
     telemetry.end()
+
+
+def test_offline_semantic_check_separates_device_questions_from_lookalikes():
+    from backend.services.relevance import semantic_relevant
+
+    if semantic_relevant("my phone battery drains fast") is None:
+        pytest.skip("embedding model not available offline")
+    for query in ["mi fone batry drainin sooo fast!!!", "the thing I charge every night dies by noon", "switch to 12 hour clock"]:
+        assert semantic_relevant(query), query
+    for query in ["best wifi router to buy", "how to change my instagram password", "is bluetooth radiation harmful"]:
+        assert not semantic_relevant(query), query
+
+
+def test_offline_relevance_falls_back_to_word_lists_without_embeddings(monkeypatch):
+    from backend.services import relevance
+
+    monkeypatch.setattr(relevance, "semantic_relevant", lambda query: None)
+    assert relevance.offline_relevance("my phone battery drains fast") == (True, "keywords")
+    assert relevance.offline_relevance("tell me a joke") == (False, "keywords")
+
+
+def test_confident_catalog_match_is_accepted_without_the_semantic_check(monkeypatch):
+    from backend.services import relevance
+
+    monkeypatch.setattr(relevance, "semantic_relevant", lambda query: pytest.fail("should not be consulted"))
+    assert relevance.offline_relevance("switch the theme to dark")[0] or relevance.semantic_relevant is None
+    assert relevance.offline_relevance("my phone time is in 24 hrs") == (True, "keywords")

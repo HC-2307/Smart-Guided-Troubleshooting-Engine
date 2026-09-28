@@ -51,6 +51,8 @@ class Settings:
     embedding_cache_dir: Path = Path(os.getenv("EMBEDDING_CACHE_DIR", str(BASE_DIR / ".cache" / "embeddings")))
     dense_min_score: float = _env_float("DENSE_MIN_SCORE", 0.74)
     dense_min_gap: float = _env_float("DENSE_MIN_GAP", 0.0)
+    semantic_relevance_enabled: bool = _env_bool("SEMANTIC_RELEVANCE_ENABLED", True)
+    semantic_relevance_margin: float = _env_float("SEMANTIC_RELEVANCE_MARGIN", 0.0)
     cache_persist_path: str = os.getenv("CACHE_PERSIST_PATH", str(BASE_DIR / ".cache" / "semantic_cache.json"))
     cache_persist_interval_seconds: float = _env_float("CACHE_PERSIST_INTERVAL_SECONDS", 5.0)
     cache_prewarm: bool = _env_bool("CACHE_PREWARM", True)
@@ -59,6 +61,8 @@ class Settings:
     llm_min_call_seconds: float = _env_float("LLM_MIN_CALL_SECONDS", 1.0)
     llm_breaker_failures: int = _env_int("LLM_BREAKER_FAILURES", 2)
     llm_breaker_cooldown_seconds: float = _env_float("LLM_BREAKER_COOLDOWN_SECONDS", 60.0)
+    coalesce_wait_seconds: float = _env_float("COALESCE_WAIT_SECONDS", 15.0)
+    embedding_threads: int = _env_int("EMBEDDING_THREADS", 1)
 
 
 settings = Settings()

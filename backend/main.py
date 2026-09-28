@@ -14,6 +14,7 @@ from backend.services.config_planner import ensure_dense_index
 from backend.services.contract_validator import catalog_by_deeplink
 from backend.services.orchestrator import prewarm
 from backend.services.query_processor import _get_m2_engine
+from backend.services.relevance import semantic_relevant
 from backend.services.text_similarity import catalog_idf
 
 logger = logging.getLogger("m3")
@@ -30,6 +31,7 @@ def warm_up() -> None:
         catalog_by_deeplink()
         catalog_idf()
         ensure_dense_index()
+        semantic_relevant("warm up")
         if settings.cache_persist_path:
             startup_report["cache_loaded"] = cache.load()
         if settings.cache_prewarm:

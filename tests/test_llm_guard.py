@@ -96,7 +96,7 @@ def test_failing_provider_opens_breaker_and_next_request_skips_the_llm(monkeypat
     assert second.status_code == 200 and second.json()["contexts"]
     assert calls["n"] == attempted
     assert second.headers["X-LLM-Calls"] == "0"
-    assert second.headers["X-Relevance"] == "keywords"
+    assert second.headers["X-Relevance"] in {"keywords", "semantic"}
 
 
 def test_slow_provider_is_cut_off_by_the_request_budget(monkeypatch):

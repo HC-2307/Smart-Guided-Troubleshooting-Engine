@@ -51,6 +51,7 @@ class _Entry:
     pinned: bool = False
     facets: dict = field(default_factory=dict)
     key_ids: list[int] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -107,14 +108,23 @@ class SemanticCache:
             entry_id = self._exact.get(_normalize(query))
             if entry_id is not None and self._alive(entry_id, now):
                 return self._hit(entry_id, "exact", 1.0, query)
+            empty = not (self.semantic_enabled and self._keys)
 
-            if self.semantic_enabled and self._keys:
-                found = self._semantic_match(query, now)
+        if not empty:
+            fp = fingerprint(query)
+            evidence = domain_evidence(query) if self.domain_guard else frozenset()
+            with self._lock:
+                entry_id = self._exact.get(_normalize(query))
+                if entry_id is not None and self._alive(entry_id, self.clock()):
+                    return self._hit(entry_id, "exact", 1.0, query)
+                found = self._semantic_match(fp, evidence, self.clock())
                 if found is not None:
+                    self._alias(_normalize(query), found[0])
                     return self._hit(*found)
 
+        with self._lock:
             self._counters["miss"] += 1
-            return CacheLookup(None, None)
+        return CacheLookup(None, None)
 
     def store(
         self,
@@ -124,35 +134,36 @@ class SemanticCache:
         pinned: bool = False,
         expires_at: Optional[float] = None,
     ) -> None:
+        exact_key = _normalize(query)
+        origin = fingerprint(query)
+        domain = self.domain_fn(query)
+        candidates: list[tuple[QueryFingerprint, bool]] = [(origin, False)]
+        filtered = 0
+        if self.seed_variations:
+            seen = {exact_key}
+            for v in variations or []:
+                if not v or _normalize(v) in seen:
+                    continue
+                seen.add(_normalize(v))
+                fp = fingerprint(v)
+                if self.facet_guard and facets_conflict(origin.facets, fp.facets):
+                    filtered += 1
+                    continue
+                candidates.append((fp, True))
+
         with self._lock:
-            exact_key = _normalize(query)
             if exact_key in self._exact:
                 self._remove(self._exact[exact_key])
-
-            origin = fingerprint(query)
+            self._counters["variation_filtered"] += filtered
             entry_id = next(self._ids)
             expiry = expires_at if expires_at is not None else self.clock() + self.ttl_seconds
             entry = _Entry(
-                response, self.domain_fn(query), expiry, exact_key, query, list(variations or []), pinned,
-                origin.facets,
+                response, domain, expiry, exact_key, query, list(variations or []), pinned, origin.facets,
             )
             self._entries[entry_id] = entry
             self._exact[exact_key] = entry_id
 
-            keys = [(origin, False)]
-            if self.seed_variations:
-                seen = {exact_key}
-                for v in variations or []:
-                    if not v or _normalize(v) in seen:
-                        continue
-                    seen.add(_normalize(v))
-                    fp = fingerprint(v)
-                    if self.facet_guard and facets_conflict(origin.facets, fp.facets):
-                        self._counters["variation_filtered"] += 1
-                        continue
-                    keys.append((fp, True))
-
-            for fp, is_variation in keys:
+            for fp, is_variation in candidates:
                 key_id = next(self._ids)
                 self._keys[key_id] = _Key(entry_id, fp, is_variation)
                 entry.key_ids.append(key_id)
@@ -237,9 +248,7 @@ class SemanticCache:
                 "evicted": self._counters["evicted"],
             }
 
-    def _semantic_match(self, query: str, now: float):
-        fp = fingerprint(query)
-        evidence = domain_evidence(query) if self.domain_guard else frozenset()
+    def _semantic_match(self, fp: QueryFingerprint, evidence: frozenset, now: float):
         candidates = set().union(*(self._index.get(t, set()) for t in fp.vector)) if fp.vector else set()
 
         best = None
@@ -267,6 +276,12 @@ class SemanticCache:
                 self._counters[reason] += 1
         return best
 
+    def _alias(self, exact_key: str, entry_id: int) -> None:
+        if exact_key in self._exact:
+            return
+        self._exact[exact_key] = entry_id
+        self._entries[entry_id].aliases.append(exact_key)
+
     def _hit(self, entry_id: int, tier: str, score: float, matched: str) -> CacheLookup:
         self._entries.move_to_end(entry_id)
         self._counters[tier] += 1
@@ -285,8 +300,9 @@ class SemanticCache:
         entry = self._entries.pop(entry_id, None)
         if entry is None:
             return
-        if self._exact.get(entry.exact_key) == entry_id:
-            del self._exact[entry.exact_key]
+        for key in (entry.exact_key, *entry.aliases):
+            if self._exact.get(key) == entry_id:
+                del self._exact[key]
         for key_id in entry.key_ids:
             key = self._keys.pop(key_id, None)
             if key is None:

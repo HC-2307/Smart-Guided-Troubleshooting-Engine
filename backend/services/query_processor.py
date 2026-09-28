@@ -51,11 +51,14 @@ _TOPIC_WORDS += [w for c, ws in CONCEPT_WORDS.items() if c != "fail" for w in ws
 _TOPIC_WORDS += [p for c, ps in CONCEPT_PHRASES.items() if c not in {"turnon", "turnoff"} for p in ps]
 _TOPIC_VOCAB = sorted({w for w in _TOPIC_WORDS if " " not in w and len(w) > 3})
 TOPIC_TYPO_CUTOFF = 0.8
-_DOMAIN_PATTERN = re.compile(r"\b(?:" + "|".join(sorted(map(re.escape, _TOPIC_WORDS), key=len, reverse=True)) + r")")
+_DOMAIN_PATTERN = re.compile(
+    r"\b(?:" + "|".join(sorted(map(re.escape, _TOPIC_WORDS), key=len, reverse=True)) + r")(?:s|es|ed|ing|er|y)?\b"
+)
+TOPIC_TYPO_MIN_LENGTH = 5
 
 
 def _strict_correct(word: str) -> str:
-    if len(word) < 4:
+    if len(word) < TOPIC_TYPO_MIN_LENGTH:
         return word
     match = difflib.get_close_matches(word, _TOPIC_VOCAB, n=1, cutoff=TOPIC_TYPO_CUTOFF)
     return match[0] if match else word
