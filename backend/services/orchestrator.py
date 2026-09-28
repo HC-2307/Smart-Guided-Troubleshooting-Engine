@@ -1,7 +1,9 @@
+import json
 import logging
+import re
 
 from backend.schemas.troubleshoot import TroubleshootResponse
-from backend.config import settings
+from backend.config import BASE_DIR, settings
 from backend.services import cache, telemetry
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
@@ -64,3 +66,44 @@ def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootR
     if response.contexts and response.fallback is None:
         _cache_store(query, response, trace)
     return response
+
+
+SIIS_PATH = BASE_DIR / "data" / "siis_responses.json"
+_NUMBERING = re.compile(r"^\s*\d+[.)]\s*")
+
+
+def _reference_queries() -> list[tuple[str, dict]]:
+    payload = json.loads(SIIS_PATH.read_text(encoding="utf-8"))
+    return [
+        (_NUMBERING.sub("", item["original_query"]).strip(), item["siis_response"])
+        for item in payload.get("responses", [])
+        if item.get("original_query") and item.get("siis_response")
+    ]
+
+
+def prewarm() -> dict:
+    report = {"built": 0, "skipped": 0, "failed": 0}
+    try:
+        references = _reference_queries()
+    except (OSError, ValueError, KeyError) as exc:
+        logger.warning("cache pre-warm skipped, reference file unreadable: %r", exc)
+        return report
+    for query, siis in references:
+        if cache.contains(query):
+            report["skipped"] += 1
+            continue
+        telemetry.begin()
+        try:
+            repaired, _ = validate_and_repair(process_query(query, siis))
+            response = TroubleshootResponse(**repaired)
+            if not response.contexts or check_no_url_leakage(response):
+                report["failed"] += 1
+                continue
+            cache.store(query, response.model_dump(), response.query_variations, pinned=True)
+            report["built"] += 1
+        except Exception as exc:
+            report["failed"] += 1
+            logger.warning("cache pre-warm failed for %r: %r", query[:60], exc)
+        finally:
+            telemetry.end()
+    return report

@@ -51,6 +51,9 @@ class Settings:
     embedding_cache_dir: Path = Path(os.getenv("EMBEDDING_CACHE_DIR", str(BASE_DIR / ".cache" / "embeddings")))
     dense_min_score: float = _env_float("DENSE_MIN_SCORE", 0.74)
     dense_min_gap: float = _env_float("DENSE_MIN_GAP", 0.0)
+    cache_persist_path: str = os.getenv("CACHE_PERSIST_PATH", str(BASE_DIR / ".cache" / "semantic_cache.json"))
+    cache_persist_interval_seconds: float = _env_float("CACHE_PERSIST_INTERVAL_SECONDS", 5.0)
+    cache_prewarm: bool = _env_bool("CACHE_PREWARM", True)
 
 
 settings = Settings()

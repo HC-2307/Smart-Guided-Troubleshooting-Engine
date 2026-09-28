@@ -1,4 +1,7 @@
 import itertools
+import json
+import logging
+import os
 import re
 import threading
 import time
@@ -10,6 +13,8 @@ from backend.config import settings
 from backend.services.query_enrichment import DOMAIN_KEYWORDS
 from backend.services.query_enrichment import _classify_domain as classify_domain
 from backend.services.text_similarity import QueryFingerprint, facets_conflict, fingerprint, similarity
+
+logger = logging.getLogger("m3")
 
 
 def _normalize(query: str) -> str:
@@ -41,6 +46,9 @@ class _Entry:
     domain: str
     expires_at: float
     exact_key: str
+    query: str = ""
+    variations: list[str] = field(default_factory=list)
+    pinned: bool = False
     facets: dict = field(default_factory=dict)
     key_ids: list[int] = field(default_factory=list)
 
@@ -88,6 +96,7 @@ class SemanticCache:
             self._keys: dict[int, _Key] = {}
             self._index: dict[str, set[int]] = {}
             self._counters: Counter = Counter()
+            self.dirty = False
 
     def __len__(self) -> int:
         return len(self._entries)
@@ -107,7 +116,14 @@ class SemanticCache:
             self._counters["miss"] += 1
             return CacheLookup(None, None)
 
-    def store(self, query: str, response: dict, variations: Optional[list[str]] = None) -> None:
+    def store(
+        self,
+        query: str,
+        response: dict,
+        variations: Optional[list[str]] = None,
+        pinned: bool = False,
+        expires_at: Optional[float] = None,
+    ) -> None:
         with self._lock:
             exact_key = _normalize(query)
             if exact_key in self._exact:
@@ -115,7 +131,11 @@ class SemanticCache:
 
             origin = fingerprint(query)
             entry_id = next(self._ids)
-            entry = _Entry(response, self.domain_fn(query), self.clock() + self.ttl_seconds, exact_key, origin.facets)
+            expiry = expires_at if expires_at is not None else self.clock() + self.ttl_seconds
+            entry = _Entry(
+                response, self.domain_fn(query), expiry, exact_key, query, list(variations or []), pinned,
+                origin.facets,
+            )
             self._entries[entry_id] = entry
             self._exact[exact_key] = entry_id
 
@@ -140,9 +160,62 @@ class SemanticCache:
                     self._index.setdefault(token, set()).add(key_id)
 
             while len(self._entries) > self.max_entries:
-                oldest = next(iter(self._entries))
+                oldest = next((i for i, e in self._entries.items() if not e.pinned), None)
+                if oldest is None:
+                    break
                 self._remove(oldest)
                 self._counters["evicted"] += 1
+            self.dirty = True
+
+    def contains(self, query: str) -> bool:
+        with self._lock:
+            entry_id = self._exact.get(_normalize(query))
+            return entry_id is not None and self._alive(entry_id, self.clock())
+
+    def snapshot(self) -> list[dict]:
+        with self._lock:
+            now = self.clock()
+            return [
+                {"query": e.query, "response": e.response, "variations": e.variations,
+                 "pinned": e.pinned, "expires_at": e.expires_at}
+                for e in self._entries.values() if e.pinned or e.expires_at > now
+            ]
+
+    def save(self, path: str) -> int:
+        records = self.snapshot()
+        target = os.path.abspath(path)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        temp = f"{target}.tmp"
+        with open(temp, "w", encoding="utf-8") as handle:
+            json.dump({"version": 1, "entries": records}, handle, ensure_ascii=False)
+        os.replace(temp, target)
+        with self._lock:
+            self.dirty = False
+        return len(records)
+
+    def load(self, path: str) -> int:
+        if not os.path.exists(path):
+            return 0
+        try:
+            with open(path, encoding="utf-8") as handle:
+                records = json.load(handle)["entries"]
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            logger.warning("cache file %s unreadable, starting empty: %r", path, exc)
+            return 0
+        now, loaded = self.clock(), 0
+        for record in records:
+            try:
+                pinned = bool(record.get("pinned"))
+                if not pinned and record["expires_at"] <= now:
+                    continue
+                self.store(record["query"], record["response"], record.get("variations"), pinned,
+                           None if pinned else record["expires_at"])
+                loaded += 1
+            except (KeyError, TypeError, AttributeError) as exc:
+                logger.warning("skipping bad cache record: %r", exc)
+        with self._lock:
+            self.dirty = False
+        return loaded
 
     def stats(self) -> dict:
         with self._lock:
@@ -159,6 +232,7 @@ class SemanticCache:
                     "domain": self._counters["reject_domain"],
                     "facet": self._counters["reject_facet"],
                 },
+                "pinned": sum(1 for e in self._entries.values() if e.pinned),
                 "variations_filtered": self._counters["variation_filtered"],
                 "evicted": self._counters["evicted"],
             }
@@ -202,7 +276,7 @@ class SemanticCache:
         entry = self._entries.get(entry_id)
         if entry is None:
             return False
-        if now > entry.expires_at:
+        if not entry.pinned and now > entry.expires_at:
             self._remove(entry_id)
             return False
         return True
@@ -232,8 +306,24 @@ def lookup(query: str) -> CacheLookup:
     return _default.lookup(query)
 
 
-def store(query: str, response: dict, variations: Optional[list[str]] = None) -> None:
-    _default.store(query, response, variations)
+def store(query: str, response: dict, variations: Optional[list[str]] = None, pinned: bool = False) -> None:
+    _default.store(query, response, variations, pinned)
+
+
+def contains(query: str) -> bool:
+    return _default.contains(query)
+
+
+def save(path: str = "") -> int:
+    return _default.save(path or settings.cache_persist_path)
+
+
+def load(path: str = "") -> int:
+    return _default.load(path or settings.cache_persist_path)
+
+
+def is_dirty() -> bool:
+    return _default.dirty
 
 
 def get(query: str) -> Optional[dict]:
