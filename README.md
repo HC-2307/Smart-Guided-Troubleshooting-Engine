@@ -111,7 +111,9 @@ Response (shortened):
 ```
 
 If nothing viable matches, the response is `{"contexts": [], "fallback": "no_match"}`. The
-engine never invents a plan or a deeplink.
+engine never invents a plan or a deeplink. Queries that are not about a device (for example
+*"what is the capital of france"*) are rejected with `no_match` before the cache or pipeline
+runs (`backend/services/relevance.py`). A request with `siis_response` skips this check.
 
 Response headers:
 

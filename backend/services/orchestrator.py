@@ -4,6 +4,7 @@ from backend.schemas.troubleshoot import TroubleshootResponse
 from backend.services import cache, telemetry
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
+from backend.services.relevance import is_device_query
 from backend.services.validator import check_no_url_leakage
 
 logger = logging.getLogger("m3")
@@ -30,6 +31,10 @@ def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.Re
 
 def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootResponse:
     trace = telemetry.current()
+
+    if siis_response is None and not is_device_query(query):
+        trace.fallback = "no_match"
+        return TroubleshootResponse(contexts=[], fallback="no_match")
 
     hit = _cache_lookup(query, trace) if siis_response is None else None
     if hit is not None and hit.response is not None:
