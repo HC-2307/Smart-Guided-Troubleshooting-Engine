@@ -582,6 +582,16 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str, original_q
                     "category": "auto",
                 },
                 {
+                    "actionName": "Back Up Phone Data",
+                    "description": "It will back up your personal data.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap on Accounts and backup.",
+                        "Select Back up data to secure your personal files.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
                     "actionName": "Clear App Cache",
                     "description": "It will remove temporary app cache files.",
                     "stepGroups": [{"steps": [
@@ -590,16 +600,6 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str, original_q
                         "Select the app using the most space.",
                         "Tap Storage.",
                         "Tap Clear cache.",
-                    ], "actionableDeeplink": None, "validationDeeplink": None}],
-                    "category": "auto",
-                },
-                {
-                    "actionName": "Back Up Phone Data",
-                    "description": "It will back up your personal data.",
-                    "stepGroups": [{"steps": [
-                        "Navigate to and open Settings.",
-                        "Tap on Accounts and backup.",
-                        "Select Back up data to secure your personal files.",
                     ], "actionableDeeplink": None, "validationDeeplink": None}],
                     "category": "auto",
                 },

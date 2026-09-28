@@ -17,6 +17,25 @@ ON_WORDS = re.compile(r"\b(enable|turn on|switch on|activate|allow|show)\b", re.
 OFF_WORDS = re.compile(r"\b(disable|turn off|switch off|deactivate|block|hide|remove)\b", re.IGNORECASE)
 VALID_CATEGORIES = {"auto", "manual", "critical"}
 CATALOG_FIELDS = ("description", "message", "classes", "originalType")
+OPTIMIZATION_WORDS = re.compile(
+    r"\b(optimi[sz]e|clear|clean|free up|delete|uninstall|update|updates|cache|calibrate|inspect|check software)\b",
+    re.IGNORECASE,
+)
+REBOOT_WORDS = re.compile(r"\b(restart|reboot|power off|force)\b", re.IGNORECASE)
+SERVICE_WORDS = re.compile(r"\b(service|repair|replace|technician|center|centre)\b", re.IGNORECASE)
+
+
+def disruption_rank(action: dict) -> int:
+    name = action.get("actionName") or ""
+    if action.get("category") == "critical":
+        return 4
+    if SERVICE_WORDS.search(name):
+        return 3
+    if REBOOT_WORDS.search(name):
+        return 2
+    if OPTIMIZATION_WORDS.search(name) or action.get("category") == "manual":
+        return 1
+    return 0
 
 
 @dataclass
@@ -193,9 +212,15 @@ def _validate_goal(goal: dict, path: str, report: ValidationReport, catalog: dic
         seen.add(action["actionName"].lower())
         kept.append(action)
 
-    ordered = [a for a in kept if a["category"] != "critical"] + [a for a in kept if a["category"] == "critical"]
-    if ordered != kept:
+    critical_last = [a for a in kept if a["category"] != "critical"] + [a for a in kept if a["category"] == "critical"]
+    if critical_last != kept:
         report.add("CRITICAL_NOT_LAST", "repaired", path, "critical actions moved to the end")
+    ordered = sorted(critical_last, key=disruption_rank)
+    if ordered != critical_last:
+        report.add(
+            "DISRUPTION_ORDER", "repaired", path,
+            f"reordered toggles -> optimizations -> reboots: {[a['actionName'] for a in ordered]}",
+        )
     goal["actions"] = ordered
 
     if not ordered:
