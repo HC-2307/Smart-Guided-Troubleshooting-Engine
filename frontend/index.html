@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Guided Troubleshooting</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <main class="page">
+
+    <header class="hero">
+      <p class="hero-kicker">Samsung PRISM · Theme 02</p>
+      <h1>What's wrong with your device?</h1>
+      <p class="hero-sub">Describe the problem in your own words. No technical terms needed.</p>
+
+      <form id="query-form" class="query-form">
+        <input
+          id="query-input"
+          type="text"
+          placeholder="e.g. my phone dies really fast and gets hot"
+          autocomplete="off"
+        />
+        <button type="submit" id="submit-btn">Troubleshoot</button>
+      </form>
+    </header>
+
+    <section id="results" class="results" aria-live="polite">
+      <!-- populated by app.js: loading / empty / error / plan states -->
+    </section>
+
+  </main>
+
+  <button id="dev-toggle" class="dev-toggle" type="button" title="Toggle developer panel">⚙</button>
+  <aside id="dev-panel" class="dev-panel hidden">
+    <div class="dev-panel-head">
+      <span>Developer panel</span>
+      <button id="dev-close" type="button">×</button>
+    </div>
+    <dl id="dev-meta" class="dev-meta"></dl>
+    <pre id="dev-json" class="dev-json"></pre>
+  </aside>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
