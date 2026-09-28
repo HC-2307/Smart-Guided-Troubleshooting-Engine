@@ -65,3 +65,40 @@ class TestQueryEnrichment:
         validated = EnrichedQuery(**res)
         assert validated.domain in ["system", "performance", "battery"]
         assert len(validated.query_variations) >= 8
+
+
+@pytest.mark.parametrize("query,expected_word", [
+    ("my wifi keeps disconnecting", "wi-fi"),
+    ("bluetooth won't pair with my earbuds", "bluetooth"),
+    ("mobile data stopped working, no signal", "mobile"),
+    ("internet is not working on my phone", "internet"),
+])
+def test_connectivity_variations_match_subtopic(query, expected_word):
+    res = enrich_query(query)
+    assert res["domain"] == "connectivity"
+    variations = [v.lower() for v in res["query_variations"]]
+    assert 8 <= len(variations) <= 10
+    assert not any("smart switch" in v for v in variations)
+    assert sum(expected_word in v for v in variations) >= 3
+    assert "transfer" not in res["issue"]
+    assert "transfer" not in res["technical_query"]
+
+
+def test_smart_switch_query_keeps_transfer_variations():
+    res = enrich_query("smart switch transfer is stuck on the qr code screen")
+    assert res["domain"] == "connectivity"
+    assert any("smart switch" in v.lower() for v in res["query_variations"])
+    assert "transfer" in res["issue"]
+
+
+@pytest.mark.parametrize("query,domain,expected_word", [
+    ("speaker sounds distorted and very quiet", "audio", "speaker"),
+    ("internal storage is full and I can't install apps", "storage", "storage"),
+])
+def test_audio_and_storage_get_own_variations(query, domain, expected_word):
+    res = enrich_query(query)
+    assert res["domain"] == domain
+    variations = [v.lower() for v in res["query_variations"]]
+    assert 8 <= len(variations) <= 10
+    assert not any("boot" in v for v in variations)
+    assert sum(expected_word in v for v in variations) >= 3

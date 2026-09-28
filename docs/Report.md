@@ -138,9 +138,9 @@ and what we took from it or did differently.
 
 | Check | Result |
 |---|---|
-| Unit + integration test suite | **158 passed** (was 53; 127 after the upgrade, 158 after the §6 fixes). Deterministic, no network. |
-| M3 benchmark (`evaluation/benchmark_m3.py`) | Held-out paraphrase hit rate **75.0%** (old cache: 0%), **0 wrong hits**, 1/6 probe false hit. Dev: 96.4%. |
-| Guard ablation | Guards allow threshold 0.60 instead of 0.65 at zero dev false hits, giving **+10.7 points** on held-out (64.3% → 75.0%). |
+| Unit + integration test suite | **165 passed** (was 53; 127 after the upgrade, 158 after the §6 fixes, 165 after the enrichment-fallback fix in §5 item 6). Deterministic, no network. |
+| M3 benchmark (`evaluation/benchmark_m3.py`) | Held-out paraphrase hit rate **80.4%** (old cache: 0%), **0 wrong hits**, 1/6 probe false hit. Dev: 96.4%. |
+| Guard ablation | Guards allow threshold 0.60 instead of 0.65 at zero dev false hits, giving **+10.7 points** on held-out (64.3% → 75.0%); query-relevant seeded variations add 5.4 more (→ 80.4%). |
 | Simulated query-specific variations | 76.8% on held-out. Labelled as a simulation. |
 | API latency (server-side) | Hit p95 **7.9 ms** (target ≤300 ms). Cold p95 **27.3 ms** (target ≤8 s). |
 | 20 official `data/input.txt` queries through the contract validator | 20/20 delivered, 0 repairs, 0 quarantines. |
@@ -166,14 +166,19 @@ and what we took from it or did differently.
    stay lowercase.
 5. **422 validation errors were being counted** as cold requests in `/metrics`. Now
    excluded.
+6. **Wrong-topic query variations in the deterministic fallback** (found during the merge to
+   `main`, live `uvicorn` test with the OpenAI key out of credits). "wifi drops all the time"
+   was given nine Smart Switch paraphrases, which the cache then seeded as lookup keys;
+   audio and storage fell back to boot-loop paraphrases. `query_enrichment.py` now picks
+   variations, `issue` and `technical_query` by subtopic. Held-out hit rate went 75.0% → 80.4%.
 
 ---
 
 ## 6. Problems found in teammates' code — fixed on this branch only
 
-On 27 Sep you asked for these to be fixed on `HC_M3_research_upgrade` only. They are fixed
-here (not on `main`). Tell arav and geetika before merging, because these edits touch their
-files. The table records what was wrong; §6.1 records the fix.
+On 27 Sep you asked for these to be fixed on `HC_M3_research_upgrade` only. On 28 Sep you
+asked for the branch to be merged to `main` without waiting for the others, so they are now on
+`main`. Tell arav and geetika, because these edits touch their files. The table records what was wrong; §6.1 records the fix.
 
 | Owner | File | Problem | Evidence |
 |---|---|---|---|
@@ -194,10 +199,10 @@ files. The table records what was wrong; §6.1 records the fix.
   remaining"), so nothing was billed. This also means the key in your shell has **no
   credits**: the live-LLM path can't currently be demoed. Every test and benchmark run
   strips the keys.
-- **Honesty about the 80% target:** we are at **75.0%** on our own held-out set, not ≥80%.
-  Don't put "≥80%" on a slide. The research doc lists exactly why, and the next step (add a
-  small local embedding model as a third signal behind the same guards).
-- **Tuning history is disclosed** in the research doc (§5, item 3) (v1 48.2% → final 75.0%, test
+- **Honesty about the 80% target:** we are at **80.4%** on our own held-out set, only just
+  over the line, on a small self-written benchmark. Quote it with that caveat. The next step is
+  still a small local embedding model as a third signal behind the same guards.
+- **Tuning history is disclosed** in the research doc (§5, item 3) (v1 48.2% → 75.0% → final 80.4%, test
   misses seen once after v1). If a judge asks, that transparency is a strength.
 - **Spec inconsistency to confirm with the organisers:** the kit's own
   `data/sample_output.json` has descriptions of **9 and 12 words** ("It will help you locate

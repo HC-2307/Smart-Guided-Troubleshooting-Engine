@@ -107,6 +107,25 @@ def _extract_context(query: str) -> List[str]:
     return contexts[:3]
 
 
+CONNECTIVITY_SUBTOPICS = [
+    ("transfer", ["smart switch", "qr code", "transfer", "migration", "migrate"]),
+    ("bluetooth", ["bluetooth", "earbuds", "headphones", "pairing", "pair"]),
+    ("wifi", ["wifi", "wi-fi", "wi fi", "router", "hotspot"]),
+    ("mobiledata", ["mobile data", "cellular", "sim", "signal", "4g", "5g", "lte", "no service"]),
+]
+
+
+def _topic_key(query: str, domain: str) -> str:
+    """Refine the connectivity domain into the subtopic the user actually named."""
+    if domain != "connectivity":
+        return domain
+    q_lower = query.lower()
+    for topic, kws in CONNECTIVITY_SUBTOPICS:
+        if any(re.search(r"\b" + re.escape(kw) + r"\b", q_lower) for kw in kws):
+            return topic
+    return "network"
+
+
 def _generate_deterministic_variations(query: str, domain: str, issue: str) -> List[str]:
     """Generate exactly 8 to 10 varied register paraphrases deterministically."""
     clean_q = re.sub(r'^[0-9]+[\.\)]\s*', '', query).strip().strip('"')
@@ -156,7 +175,7 @@ def _generate_deterministic_variations(query: str, domain: str, issue: str) -> L
             "Phone hangs constantly and touch interactions take seconds to register.",
             "Device operating with heavy input delay and sluggish performance."
         ],
-        "connectivity": [
+        "transfer": [
             "Device fails to establish stable wireless data transfer between phones.",
             "Smart Switch transfer cannot connect or scan the synchronization code.",
             "Why is my Galaxy tablet unable to transfer data wirelessly?",
@@ -166,6 +185,72 @@ def _generate_deterministic_variations(query: str, domain: str, issue: str) -> L
             "Connection between Samsung devices fails during initial data migration.",
             "Data transfer process encounters connection failure and blank screen.",
             "Interrupted wireless pairing preventing Smart Switch file transfer."
+        ],
+        "wifi": [
+            "My Galaxy phone keeps disconnecting from Wi-Fi.",
+            "Why does my Samsung phone drop the Wi-Fi connection so often?",
+            "Wi-Fi connection is unstable and keeps cutting out.",
+            "Phone connects to the wireless network but has no internet.",
+            "Intermittent Wi-Fi connectivity loss on Samsung Galaxy device.",
+            "Wi-Fi randomly turns off or fails to reconnect automatically.",
+            "Can't stay connected to my home Wi-Fi network.",
+            "Wireless LAN connection drops repeatedly during normal use.",
+            "Wi-Fi signal keeps going in and out on my phone."
+        ],
+        "bluetooth": [
+            "My phone won't connect to my Bluetooth earbuds.",
+            "Why won't my Galaxy phone pair with Bluetooth devices?",
+            "Bluetooth pairing fails with my headphones and speaker.",
+            "Samsung device cannot discover nearby Bluetooth accessories.",
+            "Bluetooth pairing request never completes on my phone.",
+            "Unable to pair a Bluetooth device with my Galaxy phone.",
+            "My Bluetooth accessory does not show up in the device list.",
+            "Phone fails to establish a Bluetooth connection with new accessories.",
+            "Bluetooth pairing error on Samsung Galaxy device."
+        ],
+        "mobiledata": [
+            "Mobile data is not working on my Galaxy phone.",
+            "Why does my Samsung phone show no signal or no service?",
+            "Cellular data keeps dropping even with full signal bars.",
+            "Phone cannot connect to the internet over mobile data.",
+            "SIM card network connection is lost intermittently.",
+            "Mobile network signal is weak and calls keep dropping.",
+            "4G or 5G data connection is unavailable on my phone.",
+            "Cellular connectivity failure on Samsung Galaxy device.",
+            "My phone keeps losing mobile data connection."
+        ],
+        "network": [
+            "My Galaxy phone keeps losing its network connection.",
+            "Why can't my Samsung phone connect to the internet?",
+            "Internet connection on my phone is unstable and drops out.",
+            "Phone shows connected but pages and apps will not load.",
+            "Intermittent network connectivity loss on Samsung Galaxy device.",
+            "Unable to get online from my phone at all.",
+            "Network connection keeps cutting out during normal use.",
+            "Samsung device fails to maintain a stable internet connection.",
+            "My phone has no internet access even though it is connected."
+        ],
+        "audio": [
+            "My Galaxy phone speaker sounds distorted and crackly.",
+            "Why is the sound on my Samsung phone so quiet?",
+            "Audio output is muffled even at full volume.",
+            "Phone speaker produces no sound during calls or media.",
+            "Low and distorted audio output on Samsung Galaxy device.",
+            "Volume is too low and the earpiece sounds unclear.",
+            "Speaker crackles when playing music or videos.",
+            "Microphone or speaker audio quality is noticeably poor.",
+            "Sound keeps cutting out on my phone."
+        ],
+        "storage": [
+            "My Galaxy phone says storage is almost full.",
+            "Why is my Samsung phone running out of space?",
+            "Internal storage is full and apps will not install.",
+            "Not enough storage space to download updates or photos.",
+            "Insufficient internal storage capacity on Samsung Galaxy device.",
+            "Phone storage fills up quickly even after deleting files.",
+            "Cannot save new photos because storage is full.",
+            "Device memory is full and the phone is slowing down.",
+            "How do I free up storage space on my phone?"
         ],
         "system": [
             "System software encounters unexpected error and fails to boot normally.",
@@ -180,7 +265,7 @@ def _generate_deterministic_variations(query: str, domain: str, issue: str) -> L
         ]
     }
 
-    base_list = variations_catalog.get(domain, variations_catalog["system"])
+    base_list = variations_catalog.get(_topic_key(query, domain), variations_catalog["system"])
     # Return 9 distinct paraphrases ensuring diversity
     return base_list[:9]
 
@@ -195,24 +280,33 @@ def _deterministic_enrichment(query: str) -> Dict[str, Any]:
         "display": "display blackout and intermittent flickering",
         "camera": "camera autofocus malfunction and blurry capture",
         "performance": "touch input latency and system sluggishness",
-        "connectivity": "data transfer synchronization failure",
+        "transfer": "data transfer synchronization failure",
+        "wifi": "intermittent Wi-Fi connection loss",
+        "bluetooth": "Bluetooth pairing and connection failure",
+        "mobiledata": "mobile data and cellular signal loss",
+        "network": "intermittent network connectivity loss",
         "audio": "speaker distortion and low audio output",
         "storage": "insufficient internal storage capacity",
         "system": "device startup malfunction and screen unresponsiveness",
     }
-    issue = issue_map.get(domain, "device operation malfunction")
+    topic = _topic_key(query, domain)
+    issue = issue_map.get(topic, "device operation malfunction")
 
     technical_query_map = {
         "battery": "rapid battery drain accompanied by elevated thermal temperature",
         "display": "display panel intermittent blackout and visual output failure",
         "camera": "rear camera autofocus failure resulting in blurry imagery",
         "performance": "digitizer input delay and application performance latency",
-        "connectivity": "wireless data synchronization and device transfer failure",
+        "transfer": "wireless data synchronization and device transfer failure",
+        "wifi": "Wi-Fi connection instability and intermittent disconnection",
+        "bluetooth": "Bluetooth pairing failure and unstable accessory connection",
+        "mobiledata": "cellular data connection failure and mobile signal loss",
+        "network": "network connectivity loss and internet access failure",
         "audio": "audio subsystem distortion and hardware speaker malfunction",
         "storage": "internal storage partition full causing app failure",
         "system": "system boot malfunction and OS unresponsive state",
     }
-    technical_query = technical_query_map.get(domain, f"{domain} hardware and software malfunction")
+    technical_query = technical_query_map.get(topic, f"{domain} hardware and software malfunction")
 
     variations = _generate_deterministic_variations(query, domain, issue)
 

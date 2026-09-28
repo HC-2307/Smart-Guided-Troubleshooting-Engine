@@ -1117,7 +1117,7 @@
       {
         "threshold": 0.75,
         "variation_threshold": 0.75,
-        "hit_rate": 0.6964,
+        "hit_rate": 0.7143,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1125,7 +1125,7 @@
       {
         "threshold": 0.75,
         "variation_threshold": 0.8,
-        "hit_rate": 0.6964,
+        "hit_rate": 0.7143,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1133,7 +1133,7 @@
       {
         "threshold": 0.75,
         "variation_threshold": 0.85,
-        "hit_rate": 0.6964,
+        "hit_rate": 0.7143,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1141,7 +1141,7 @@
       {
         "threshold": 0.8,
         "variation_threshold": 0.8,
-        "hit_rate": 0.5893,
+        "hit_rate": 0.6071,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1149,7 +1149,7 @@
       {
         "threshold": 0.8,
         "variation_threshold": 0.85,
-        "hit_rate": 0.5893,
+        "hit_rate": 0.6071,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1157,7 +1157,7 @@
       {
         "threshold": 0.8,
         "variation_threshold": 0.9,
-        "hit_rate": 0.5893,
+        "hit_rate": 0.6071,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1165,7 +1165,7 @@
       {
         "threshold": 0.85,
         "variation_threshold": 0.85,
-        "hit_rate": 0.5,
+        "hit_rate": 0.5357,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1173,7 +1173,7 @@
       {
         "threshold": 0.85,
         "variation_threshold": 0.9,
-        "hit_rate": 0.5,
+        "hit_rate": 0.5357,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1181,7 +1181,7 @@
       {
         "threshold": 0.85,
         "variation_threshold": 0.95,
-        "hit_rate": 0.5,
+        "hit_rate": 0.5179,
         "wrong_hits": 0,
         "probe_false_hits": 0,
         "safe": true
@@ -1336,9 +1336,9 @@
     },
     "D_full_guarded_seeded": {
       "paraphrases": 56,
-      "correct_hits": 42,
+      "correct_hits": 45,
       "wrong_hits": 0,
-      "hit_rate": 0.75,
+      "hit_rate": 0.8036,
       "wrong_hit_rate": 0.0,
       "probes": 6,
       "probe_false_hits": 1,
@@ -1347,8 +1347,8 @@
       ],
       "hits_by_tier": {
         "exact": 0,
-        "semantic": 38,
-        "variation": 4
+        "semantic": 33,
+        "variation": 12
       },
       "missed_queries": [
         "It doesn't charge even though the charger is connected",
@@ -1357,10 +1357,7 @@
         "it gets really warm on the back even when I am only texting",
         "The screen takes a long time to react when I tap",
         "Touch input exhibits significant latency.",
-        "The device repeatedly loses its wireless LAN connection.",
         "at home my wifi keeps cutting out on the phone but my laptop is fine",
-        "The internal storage capacity has been exhausted.",
-        "can't download anything because it says storage is full",
         "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
         "My applications keep closing unexpectedly",
         "Applications terminate abnormally on the device.",
@@ -1542,9 +1539,9 @@
     },
     "D_full_guarded_seeded": {
       "paraphrases": 56,
-      "correct_hits": 42,
+      "correct_hits": 45,
       "wrong_hits": 0,
-      "hit_rate": 0.75,
+      "hit_rate": 0.8036,
       "wrong_hit_rate": 0.0,
       "probes": 6,
       "probe_false_hits": 1,
@@ -1553,8 +1550,8 @@
       ],
       "hits_by_tier": {
         "exact": 0,
-        "semantic": 38,
-        "variation": 4
+        "semantic": 33,
+        "variation": 12
       },
       "missed_queries": [
         "It doesn't charge even though the charger is connected",
@@ -1563,10 +1560,7 @@
         "it gets really warm on the back even when I am only texting",
         "The screen takes a long time to react when I tap",
         "Touch input exhibits significant latency.",
-        "The device repeatedly loses its wireless LAN connection.",
         "at home my wifi keeps cutting out on the phone but my laptop is fine",
-        "The internal storage capacity has been exhausted.",
-        "can't download anything because it says storage is full",
         "there's a floating circle with shortcuts that follows me everywhere, how do I remove it",
         "My applications keep closing unexpectedly",
         "Applications terminate abnormally on the device.",
@@ -1699,8 +1693,8 @@
       "probe_false_hit_queries": [],
       "hits_by_tier": {
         "exact": 0,
-        "semantic": 53,
-        "variation": 1
+        "semantic": 49,
+        "variation": 5
       },
       "missed_queries": [
         "My phone loses charge within a few hours even when I barely use it",
@@ -1710,60 +1704,60 @@
   },
   "api_latency": {
     "cold_ms": {
-      "count": 27,
-      "p50": 24.929,
-      "p95": 226.712,
-      "mean": 43.041
+      "count": 24,
+      "p50": 11.591,
+      "p95": 107.482,
+      "mean": 21.544
     },
     "hit_ms": {
-      "count": 43,
-      "p50": 11.303,
-      "p95": 16.355,
-      "mean": 11.354
+      "count": 46,
+      "p50": 4.833,
+      "p95": 9.441,
+      "mean": 5.63
     },
     "server_metrics": {
       "pipeline": {
         "requests": 70,
-        "cache_hit_rate": 0.6286,
+        "cache_hit_rate": 0.6714,
         "latency_ms": {
           "hit": {
-            "count": 44,
-            "p50": 5.101,
-            "p95": 7.927
+            "count": 47,
+            "p50": 2.302,
+            "p95": 5.815
           },
           "cold": {
-            "count": 26,
-            "p50": 19.221,
-            "p95": 27.257
+            "count": 23,
+            "p50": 8.309,
+            "p95": 17.324
           }
         },
         "counters": {
           "requests": 70,
-          "cache_miss": 26,
+          "cache_miss": 23,
           "llm_calls": 0,
           "errors": 0,
-          "cache_variation": 8,
-          "cache_semantic": 36
+          "cache_variation": 16,
+          "cache_semantic": 31
         },
         "validation_codes": {},
         "est_cost_usd": 0.0
       },
       "cache": {
-        "entries": 26,
-        "keys": 245,
-        "hits": 44,
-        "misses": 26,
-        "hit_rate": 0.6286,
+        "entries": 23,
+        "keys": 216,
+        "hits": 47,
+        "misses": 23,
+        "hit_rate": 0.6714,
         "hits_by_tier": {
           "exact": 0,
-          "semantic": 36,
-          "variation": 8
+          "semantic": 31,
+          "variation": 16
         },
         "guard_rejections": {
           "domain": 0,
           "facet": 0
         },
-        "variations_filtered": 15,
+        "variations_filtered": 14,
         "evicted": 0
       }
     }
