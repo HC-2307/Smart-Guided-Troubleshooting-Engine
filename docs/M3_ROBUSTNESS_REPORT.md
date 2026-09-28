@@ -92,3 +92,13 @@ python evaluation/load_test.py http://localhost:8000 16 10
 
 Cache files written by older code are now ignored at startup (file `version` 2), so stale wrong
 answers do not survive an upgrade.
+
+## Follow-up: generic screen questions got the "Email server issue" plan
+
+Samsung's reference data pairs official query #1 (a screen that blanks when opening an email in
+Gmail) with the "Email server not responding" article, so that query correctly gets an email plan.
+Pre-warm cached it with nine generic display paraphrases as lookup keys, so *"my screen keeps
+flickering"* and *"screen goes blank"* were served the email plan. Plans built from a specific
+reference article are now cached without paraphrase keys and need a stricter similarity (0.75,
+`SEMANTIC_CACHE_REFERENCE_THRESHOLD`) to be reused; close rewordings of the official query (0.81 and
+above) still hit it. The cache file version is now 3, so caches holding the old keys are ignored.

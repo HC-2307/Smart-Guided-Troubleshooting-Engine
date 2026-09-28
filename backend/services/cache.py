@@ -15,7 +15,7 @@ from backend.services.query_enrichment import _classify_domain as classify_domai
 from backend.services.text_similarity import QueryFingerprint, facets_conflict, fingerprint, similarity
 
 logger = logging.getLogger("m3")
-CACHE_FILE_VERSION = 2
+CACHE_FILE_VERSION = 3
 
 
 def _normalize(query: str) -> str:
@@ -51,6 +51,7 @@ class _Entry:
     variations: list[str] = field(default_factory=list)
     pinned: bool = False
     facets: dict = field(default_factory=dict)
+    strict: bool = False
     key_ids: list[int] = field(default_factory=list)
     aliases: list[str] = field(default_factory=list)
 
@@ -134,6 +135,7 @@ class SemanticCache:
         variations: Optional[list[str]] = None,
         pinned: bool = False,
         expires_at: Optional[float] = None,
+        strict: bool = False,
     ) -> None:
         exact_key = _normalize(query)
         origin = fingerprint(query)
@@ -160,6 +162,7 @@ class SemanticCache:
             expiry = expires_at if expires_at is not None else self.clock() + self.ttl_seconds
             entry = _Entry(
                 response, domain, expiry, exact_key, query, list(variations or []), pinned, origin.facets,
+                strict=strict,
             )
             self._entries[entry_id] = entry
             self._exact[exact_key] = entry_id
@@ -189,7 +192,7 @@ class SemanticCache:
             now = self.clock()
             return [
                 {"query": e.query, "response": e.response, "variations": e.variations,
-                 "pinned": e.pinned, "expires_at": e.expires_at}
+                 "pinned": e.pinned, "expires_at": e.expires_at, "strict": e.strict}
                 for e in self._entries.values() if e.pinned or e.expires_at > now
             ]
 
@@ -225,7 +228,7 @@ class SemanticCache:
                 if not pinned and record["expires_at"] <= now:
                     continue
                 self.store(record["query"], record["response"], record.get("variations"), pinned,
-                           None if pinned else record["expires_at"])
+                           None if pinned else record["expires_at"], bool(record.get("strict")))
                 loaded += 1
             except (KeyError, TypeError, AttributeError) as exc:
                 logger.warning("skipping bad cache record: %r", exc)
@@ -264,6 +267,8 @@ class SemanticCache:
                 continue
             score = similarity(fp, key.fp)
             limit = self.variation_threshold if key.is_variation else self.threshold
+            if self._entries[key.entry_id].strict:
+                limit = max(limit, settings.reference_match_threshold)
             if score < limit or (best is not None and score <= best[2]):
                 continue
             if self.domain_guard and not domains_compatible(evidence, self._entries[key.entry_id].domain):
@@ -332,8 +337,10 @@ def lookup(query: str) -> CacheLookup:
     return _default.lookup(query)
 
 
-def store(query: str, response: dict, variations: Optional[list[str]] = None, pinned: bool = False) -> None:
-    _default.store(query, response, variations, pinned)
+def store(
+    query: str, response: dict, variations: Optional[list[str]] = None, pinned: bool = False, strict: bool = False
+) -> None:
+    _default.store(query, response, variations, pinned, strict=strict)
 
 
 def confirm(query: str, hit: CacheLookup) -> None:

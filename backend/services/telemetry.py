@@ -25,6 +25,7 @@ class RequestTrace:
     llm_calls: int = 0
     relevance: str = "skipped"
     planner: str = "none"
+    grounding: str = "none"
     validation: dict = field(default_factory=dict)
     fallback: Optional[str] = None
     errors: list[str] = field(default_factory=list)

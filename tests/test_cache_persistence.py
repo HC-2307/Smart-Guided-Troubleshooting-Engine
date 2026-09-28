@@ -180,3 +180,32 @@ def test_saved_file_carries_the_current_version(tmp_path):
     store.store("turn on bluetooth", RESPONSE)
     store.save(str(path))
     assert json.loads(path.read_text(encoding="utf-8"))["version"] == cache.CACHE_FILE_VERSION
+
+
+def test_prewarmed_entries_are_stored_without_paraphrase_keys():
+    orchestrator.prewarm()
+    entries = [e for e in cache._default._entries.values() if e.pinned]
+    assert entries and all(len(e.key_ids) == 1 and e.strict for e in entries)
+
+
+@pytest.mark.parametrize("query", ["my screen keeps flickering", "screen is flickering", "screen goes blank", "phone screen flashes"])
+def test_generic_screen_questions_do_not_get_an_article_specific_plan(query):
+    orchestrator.prewarm()
+    hit = cache.lookup(query)
+    assert hit.response is None or "Email" not in hit.response["contexts"][0]["title"]
+
+
+def test_close_paraphrase_of_an_official_query_still_hits_its_plan():
+    orchestrator.prewarm()
+    hit = cache.lookup("my tablet screen flashes then goes blank when I open an email in gmail")
+    assert hit.response is not None and hit.response["contexts"][0]["title"] == "Email server issue"
+
+
+def test_strict_flag_survives_save_and_load(tmp_path):
+    path = tmp_path / "cache.json"
+    first = SemanticCache()
+    first.store("official long query about an email problem", RESPONSE, pinned=True, strict=True)
+    first.save(str(path))
+    second = SemanticCache()
+    second.load(str(path))
+    assert all(e.strict for e in second._entries.values())

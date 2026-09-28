@@ -75,16 +75,20 @@ def no_context_response() -> dict:
 
 
 def process_query(query: str, siis_response: Optional[dict] = None) -> dict:
+    trace = telemetry.current()
+    reference = siis_response
     if siis_response is None:
         with telemetry.stage("config_plan"):
             config_plan = build_plan(query)
         if config_plan is not None:
-            telemetry.current().planner = "catalog"
+            trace.planner, trace.grounding = "catalog", "catalog"
             return config_plan
-        if find_matching_siis(query) is None and not has_topic_evidence(query):
-            telemetry.current().planner = "none"
+        reference = find_matching_siis(query)
+        if reference is None and not has_topic_evidence(query):
+            trace.planner = "none"
             return no_context_response()
-    telemetry.current().planner = "m1"
+    trace.planner = "m1"
+    trace.grounding = "reference" if reference else "domain"
 
     with telemetry.stage("enrich"):
         enriched_query = enrich_query(query)

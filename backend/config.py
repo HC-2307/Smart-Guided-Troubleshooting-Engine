@@ -41,6 +41,7 @@ class Settings:
     semantic_cache_enabled: bool = _env_bool("SEMANTIC_CACHE_ENABLED", True)
     semantic_threshold: float = _env_float("SEMANTIC_CACHE_THRESHOLD", 0.60)
     variation_threshold: float = _env_float("SEMANTIC_CACHE_VARIATION_THRESHOLD", 0.60)
+    reference_match_threshold: float = _env_float("SEMANTIC_CACHE_REFERENCE_THRESHOLD", 0.75)
     seed_variations: bool = _env_bool("SEMANTIC_CACHE_SEED_VARIATIONS", True)
     max_query_chars: int = _env_int("MAX_QUERY_CHARS", 2000)
     llm_cost_per_call_usd: float = _env_float("LLM_COST_PER_CALL_USD", 0.0004)

@@ -97,3 +97,21 @@ def test_blank_raw_text_reference_is_treated_as_absent():
 def test_invalid_siis_response_is_rejected_cleanly(bad):
     response = client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast", "siis_response": bad})
     assert response.status_code == 422
+
+
+def test_reference_grounded_plan_is_cached_without_paraphrase_keys():
+    from backend.services import cache
+
+    cache.clear()
+    client.post("/v1/troubleshoot", json={"query": SPEC_QUERY, "siis_response": SPEC_TEXT})
+    entry = next(e for e in cache._default._entries.values() if e.query == SPEC_QUERY)
+    assert len(entry.key_ids) == 1 and entry.strict
+
+
+def test_domain_plan_still_seeds_paraphrase_keys():
+    from backend.services import cache
+
+    cache.clear()
+    client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
+    entry = next(e for e in cache._default._entries.values() if e.query == "my phone battery drains fast")
+    assert len(entry.key_ids) > 1 and not entry.strict

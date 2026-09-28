@@ -28,7 +28,9 @@ def _cache_lookup(query: str, trace: telemetry.RequestTrace):
 def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.RequestTrace) -> None:
     try:
         with telemetry.stage("cache_store"):
-            cache.store(query, response.model_dump(), response.query_variations)
+            grounded = trace.grounding == "reference"
+            variations = None if grounded else response.query_variations
+            cache.store(query, response.model_dump(), variations, strict=grounded)
     except Exception as exc:
         trace.errors.append(f"cache_store: {exc!r}")
         logger.warning("request %s cache store failed: %r", trace.request_id, exc)
@@ -57,7 +59,7 @@ def troubleshoot(query: str, siis_response: dict | None = None) -> TroubleshootR
     if not leader:
         if flight.done.wait(settings.coalesce_wait_seconds) and flight.response is not None:
             trace = telemetry.current()
-            for field in ("relevance", "planner", "fallback", "validation"):
+            for field in ("relevance", "planner", "grounding", "fallback", "validation"):
                 setattr(trace, field, getattr(flight.trace, field))
             trace.cache_tier = "coalesced"
             return flight.response.model_copy(deep=True)
@@ -142,7 +144,7 @@ def prewarm() -> dict:
             if not response.contexts or check_no_url_leakage(response):
                 report["failed"] += 1
                 continue
-            cache.store(query, response.model_dump(), response.query_variations, pinned=True)
+            cache.store(query, response.model_dump(), None, pinned=True, strict=True)
             report["built"] += 1
         except Exception as exc:
             report["failed"] += 1

@@ -1705,56 +1705,56 @@
   "api_latency": {
     "cold_ms": {
       "count": 24,
-      "p50": 60.351,
-      "p95": 321.486,
-      "mean": 102.29
+      "p50": 62.146,
+      "p95": 310.361,
+      "mean": 97.834
     },
     "hit_ms": {
       "count": 46,
-      "p50": 43.951,
-      "p95": 63.625,
-      "mean": 45.454
+      "p50": 50.318,
+      "p95": 77.895,
+      "mean": 53.033
     },
     "server_metrics": {
       "pipeline": {
         "requests": 70,
-        "cache_hit_rate": 0.6714,
+        "cache_hit_rate": 0.6571,
         "latency_ms": {
           "hit": {
-            "count": 47,
-            "p50": 37.489,
-            "p95": 57.638
+            "count": 46,
+            "p50": 42.723,
+            "p95": 70.838
           },
           "cold": {
-            "count": 23,
-            "p50": 54.939,
-            "p95": 314.186
+            "count": 24,
+            "p50": 56.332,
+            "p95": 303.606
           }
         },
         "counters": {
           "requests": 70,
-          "cache_miss": 23,
+          "cache_miss": 24,
           "llm_calls": 0,
           "relevance_semantic": 70,
-          "planner_m1": 23,
+          "planner_m1": 24,
           "errors": 0,
-          "cache_variation": 16,
-          "planner_none": 47,
-          "cache_semantic": 31
+          "cache_semantic": 33,
+          "planner_none": 46,
+          "cache_variation": 13
         },
         "validation_codes": {},
         "est_cost_usd": 0.0
       },
       "cache": {
-        "entries": 23,
-        "keys": 216,
-        "hits": 47,
-        "misses": 23,
-        "hit_rate": 0.6714,
+        "entries": 24,
+        "keys": 199,
+        "hits": 46,
+        "misses": 24,
+        "hit_rate": 0.6571,
         "hits_by_tier": {
           "exact": 0,
-          "semantic": 31,
-          "variation": 16
+          "semantic": 33,
+          "variation": 13
         },
         "guard_rejections": {
           "domain": 0,
