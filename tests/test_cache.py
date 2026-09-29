@@ -7,6 +7,8 @@ from backend.services.cache import SemanticCache, domain_evidence, domains_compa
 
 BATTERY = {"contexts": [{"title": "battery"}]}
 CAMERA = {"contexts": [{"title": "rear camera"}]}
+DISPLAY = {"contexts": [{"goal": "Follow these steps to perform this Display Troubleshooting", "title": "Screen display damage"}]}
+NETWORK = {"contexts": [{"goal": "Follow these steps to perform this Network Troubleshooting", "title": "Mobile data failure"}]}
 
 
 class FakeClock:
@@ -85,9 +87,9 @@ def test_guard_rejections_are_counted(sc):
 
 
 def test_seeded_variation_serves_matching_query(sc):
-    sc.store("screen issue", CAMERA, variations=["display keeps flickering on and off"])
+    sc.store("screen issue", DISPLAY, variations=["display keeps flickering on and off"])
     hit = sc.lookup("my display keeps flickering")
-    assert hit.response == CAMERA
+    assert hit.response == DISPLAY
     assert hit.tier == "variation"
 
 
@@ -227,3 +229,26 @@ def test_lookup_alone_does_not_pin_an_alias():
     store.store("my phone battery drains fast", {"contexts": [{"title": "first"}]})
     assert store.lookup("my phone battery is draining fast").tier == "semantic"
     assert store.lookup("my phone battery is draining fast").tier == "semantic"
+
+
+def test_plan_topics_come_from_goal_and_title():
+    assert cache.plan_topics(DISPLAY) == {"display"}
+    assert cache.plan_topics(NETWORK) == {"connectivity"}
+    assert cache.plan_topics({"contexts": []}) == frozenset()
+
+
+def test_plan_topics_ignore_action_names():
+    plan = {"contexts": [{"goal": "Follow these steps to perform this Display Troubleshooting", "title": "Screen display damage",
+                          "actions": [{"actionName": "Back Up Phone Data"}]}]}
+    assert cache.plan_topics(plan) == {"display"}
+
+
+def test_unconfident_plan_is_not_cached(sc):
+    assert sc.store("my phone storge is ful", DISPLAY, require_topic_match=True) is False
+    assert sc.lookup("my phone storge is ful").response is None
+    assert sc.stats()["unconfident_not_cached"] == 1
+
+
+def test_confident_plan_is_cached(sc):
+    assert sc.store("my screen keeps flickering", DISPLAY, require_topic_match=True) is True
+    assert sc.lookup("my screen keeps flickering").tier == "exact"

@@ -1,0 +1,644 @@
+{
+ "offline_typo_first": {
+  "summary": {
+   "order": "typo-first",
+   "pairs": 12,
+   "same_answer": 5,
+   "http_errors": 0
+  },
+  "rows": [
+   {
+    "first": {
+     "query": "my phone batery drainz so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 195
+    },
+    "second": {
+     "query": "my phone battery drains so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 26
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "wifi keps disconecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 94
+    },
+    "second": {
+     "query": "wifi keeps disconnecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "variation",
+     "ms": 29
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my screen is flikering alot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 90
+    },
+    "second": {
+     "query": "my screen is flickering a lot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "semantic",
+     "ms": 33
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "blutooth wont pair with my car",
+     "status": 200,
+     "answer": "System startup failure",
+     "cache": "miss",
+     "ms": 134
+    },
+    "second": {
+     "query": "bluetooth won't pair with my car",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 100
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "my camra photos are blury",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "miss",
+     "ms": 108
+    },
+    "second": {
+     "query": "my camera photos are blurry",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "miss",
+     "ms": 24
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "phone overheting while chargng",
+     "status": 200,
+     "answer": "System startup failure",
+     "cache": "miss",
+     "ms": 30
+    },
+    "second": {
+     "query": "phone overheating while charging",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 33
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "my phone storge is ful",
+     "status": 200,
+     "answer": "System startup failure",
+     "cache": "miss",
+     "ms": 27
+    },
+    "second": {
+     "query": "my phone storage is full",
+     "status": 200,
+     "answer": "Storage space full",
+     "cache": "miss",
+     "ms": 177
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "speker not wroking on calls",
+     "status": 200,
+     "answer": "System startup failure",
+     "cache": "miss",
+     "ms": 42
+    },
+    "second": {
+     "query": "speaker not working on calls",
+     "status": 200,
+     "answer": "Speaker sound issue",
+     "cache": "miss",
+     "ms": 30
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "apps keep crashng and freezng",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "miss",
+     "ms": 174
+    },
+    "second": {
+     "query": "apps keep crashing and freezing",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "miss",
+     "ms": 51
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my phone tiem is in 24 hr",
+     "status": 200,
+     "answer": "no_siis_context",
+     "cache": "miss",
+     "ms": 15
+    },
+    "second": {
+     "query": "my phone time is in 24 hrs",
+     "status": 200,
+     "answer": "24-hour format settings",
+     "cache": "miss",
+     "ms": 9
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "turn of blutooth",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "variation",
+     "ms": 27
+    },
+    "second": {
+     "query": "turn off bluetooth",
+     "status": 200,
+     "answer": "Bluetooth settings",
+     "cache": "miss",
+     "ms": 32
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "mobil data not wrking",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 62
+    },
+    "second": {
+     "query": "mobile data not working",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 85
+    },
+    "same_answer": false
+   }
+  ]
+ },
+ "offline_clean_first": {
+  "summary": {
+   "order": "clean-first",
+   "pairs": 12,
+   "same_answer": 11,
+   "http_errors": 0
+  },
+  "rows": [
+   {
+    "first": {
+     "query": "my phone battery drains so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 222
+    },
+    "second": {
+     "query": "my phone batery drainz so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "semantic",
+     "ms": 49
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "wifi keeps disconnecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 98
+    },
+    "second": {
+     "query": "wifi keps disconecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "semantic",
+     "ms": 32
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my screen is flickering a lot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 81
+    },
+    "second": {
+     "query": "my screen is flikering alot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "semantic",
+     "ms": 15
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "bluetooth won't pair with my car",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 88
+    },
+    "second": {
+     "query": "blutooth wont pair with my car",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "semantic",
+     "ms": 37
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my camera photos are blurry",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "miss",
+     "ms": 138
+    },
+    "second": {
+     "query": "my camra photos are blury",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "semantic",
+     "ms": 29
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "phone overheating while charging",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 44
+    },
+    "second": {
+     "query": "phone overheting while chargng",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "semantic",
+     "ms": 40
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my phone storage is full",
+     "status": 200,
+     "answer": "Storage space full",
+     "cache": "miss",
+     "ms": 187
+    },
+    "second": {
+     "query": "my phone storge is ful",
+     "status": 200,
+     "answer": "Storage space full",
+     "cache": "variation",
+     "ms": 15
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "speaker not working on calls",
+     "status": 200,
+     "answer": "Speaker sound issue",
+     "cache": "miss",
+     "ms": 60
+    },
+    "second": {
+     "query": "speker not wroking on calls",
+     "status": 200,
+     "answer": "Speaker sound issue",
+     "cache": "semantic",
+     "ms": 30
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "apps keep crashing and freezing",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "miss",
+     "ms": 191
+    },
+    "second": {
+     "query": "apps keep crashng and freezng",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "semantic",
+     "ms": 36
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my phone time is in 24 hrs",
+     "status": 200,
+     "answer": "24-hour format settings",
+     "cache": "miss",
+     "ms": 26
+    },
+    "second": {
+     "query": "my phone tiem is in 24 hr",
+     "status": 200,
+     "answer": "no_siis_context",
+     "cache": "miss",
+     "ms": 45
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "turn off bluetooth",
+     "status": 200,
+     "answer": "Bluetooth settings",
+     "cache": "miss",
+     "ms": 8
+    },
+    "second": {
+     "query": "turn of blutooth",
+     "status": 200,
+     "answer": "Bluetooth settings",
+     "cache": "variation",
+     "ms": 32
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "mobile data not working",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 91
+    },
+    "second": {
+     "query": "mobil data not wrking",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "semantic",
+     "ms": 31
+    },
+    "same_answer": true
+   }
+  ]
+ },
+ "free_tier_typo_first": {
+  "summary": {
+   "order": "typo-first",
+   "pairs": 12,
+   "same_answer": 8,
+   "http_errors": 0
+  },
+  "rows": [
+   {
+    "first": {
+     "query": "my phone batery drainz so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 6096
+    },
+    "second": {
+     "query": "my phone battery drains so fast",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 4797
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "wifi keps disconecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 5957
+    },
+    "second": {
+     "query": "wifi keeps disconnecting",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "variation",
+     "ms": 27
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my screen is flikering alot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 5923
+    },
+    "second": {
+     "query": "my screen is flickering a lot",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "variation",
+     "ms": 37
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "blutooth wont pair with my car",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 5926
+    },
+    "second": {
+     "query": "bluetooth won't pair with my car",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 5941
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "my camra photos are blury",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "miss",
+     "ms": 5987
+    },
+    "second": {
+     "query": "my camera photos are blurry",
+     "status": 200,
+     "answer": "Camera focus failure",
+     "cache": "miss",
+     "ms": 5991
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "phone overheting while chargng",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 6179
+    },
+    "second": {
+     "query": "phone overheating while charging",
+     "status": 200,
+     "answer": "Battery drain issue",
+     "cache": "miss",
+     "ms": 6807
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my phone storge is ful",
+     "status": 200,
+     "answer": "Storage space full",
+     "cache": "miss",
+     "ms": 6185
+    },
+    "second": {
+     "query": "my phone storage is full",
+     "status": 200,
+     "answer": "Storage space full",
+     "cache": "miss",
+     "ms": 5791
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "speker not wroking on calls",
+     "status": 200,
+     "answer": "Speaker sound issue",
+     "cache": "miss",
+     "ms": 4819
+    },
+    "second": {
+     "query": "speaker not working on calls",
+     "status": 200,
+     "answer": "Speaker sound issue",
+     "cache": "miss",
+     "ms": 4558
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "apps keep crashng and freezng",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "miss",
+     "ms": 6075
+    },
+    "second": {
+     "query": "apps keep crashing and freezing",
+     "status": 200,
+     "answer": "Device performance lag",
+     "cache": "miss",
+     "ms": 6806
+    },
+    "same_answer": true
+   },
+   {
+    "first": {
+     "query": "my phone tiem is in 24 hr",
+     "status": 200,
+     "answer": "no_siis_context",
+     "cache": "miss",
+     "ms": 1588
+    },
+    "second": {
+     "query": "my phone time is in 24 hrs",
+     "status": 200,
+     "answer": "24-hour format settings",
+     "cache": "miss",
+     "ms": 2663
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "turn of blutooth",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 6636
+    },
+    "second": {
+     "query": "turn off bluetooth",
+     "status": 200,
+     "answer": "Bluetooth settings",
+     "cache": "miss",
+     "ms": 1356
+    },
+    "same_answer": false
+   },
+   {
+    "first": {
+     "query": "mobil data not wrking",
+     "status": 200,
+     "answer": "Screen display damage",
+     "cache": "miss",
+     "ms": 5197
+    },
+    "second": {
+     "query": "mobile data not working",
+     "status": 200,
+     "answer": "Network connection issue",
+     "cache": "miss",
+     "ms": 6717
+    },
+    "same_answer": false
+   }
+  ]
+ }
+}
