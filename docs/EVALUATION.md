@@ -20,10 +20,11 @@ Two modes were measured:
 | Zero URL leakage | 0 URLs in 62/62 official actions and in every adversarial response, including prompt injection asking for a URL and reference texts containing links | `benchmark.py`, `tests/test_robustness.py` |
 | Deeplinks only from the catalog | 74/74 delivered deeplinks are catalog entries; 0 manual actions with a deeplink; 0 on/off polarity conflicts | `deeplink_audit.py` |
 | ≥ 80% cache hits on paraphrased queries | **80.4%** (45/56) on the held-out split, **0 wrong hits** | `benchmark_m3.py` |
-| P95 ≤ 300 ms on a cache hit | 81 ms under 16 concurrent users (live server); 63 ms single-user | `load_test.py`, `benchmark_m3.py` |
-| P95 ≤ 8 s on the cold path | 6.5 s with the live free-tier LLM (15 cold queries); 272 ms offline | live run below, `benchmark_m3.py` |
+| P95 ≤ 300 ms on a cache hit | 81 ms under 16 concurrent users (live server); 24 ms single-user | `load_test.py`, `benchmark_m3.py` |
+| P95 ≤ 8 s on the cold path | 6.5 s with the live free-tier LLM (15 cold queries); 116 ms offline | live run below, `benchmark_m3.py` |
 | No hallucinated plans; return `contexts: []` when nothing fits | 29/30 off-topic questions refused offline, 15/15 live queries judged correctly by the LLM | `robustness_eval.py`, live run |
 | Per-query cost tracking | `X-LLM-Calls` and `X-Est-Cost-USD` on every response, totals in `GET /v1/metrics` | `tests/test_api.py` |
+| Misspelt queries | 0 errors; a misspelt query never changes the answer to the correctly spelt one (12/12) | `typo_eval.py` |
 
 ## 1. Unit and integration tests
 
@@ -31,14 +32,14 @@ Two modes were measured:
 python -m pytest -q
 ```
 
-Result: **427 passed**, 0 failed (about 25 s). The suite removes every LLM setting before each test, so it
+Result: **433 passed**, 0 failed (about 25 s). The suite removes every LLM setting before each test, so it
 is deterministic and never makes a paid or network call.
 
 | Area | Test files (number of tests) |
 |---|---|
 | API contract, headers, CORS, errors, metrics | `test_api.py` (15) |
-| End-to-end pipeline M1 → M2 → M3, official queries, zero repairs | `test_integration.py` (12), `test_sample_integration.py` (1) |
-| Semantic cache, similarity, persistence | `test_cache.py` (27), `test_similarity.py` (10), `test_cache_persistence.py` (23) |
+| End-to-end pipeline M1 → M2 → M3, official queries, zero repairs, no cache poisoning by misspelt queries | `test_integration.py` (14), `test_sample_integration.py` (1) |
+| Semantic cache, similarity, persistence, confident-only caching | `test_cache.py` (31), `test_similarity.py` (10), `test_cache_persistence.py` (23) |
 | Contract validator and action ordering | `test_contract_validator.py` (27), `test_disruption_order.py` (12) |
 | Relevance gate (LLM with a fake provider, embeddings, keywords) | `test_relevance.py` (45) |
 | Settings (Configuration) plans and dense catalog index | `test_config_planner.py` (57), `test_catalog_index.py` (8) |
@@ -119,9 +120,9 @@ The one hard negative served is the compound complaint "battery drains fast and 
 
 | Path | Setting | p50 | p95 | Target |
 |---|---|---|---|---|
-| Cache hit | single user, through the API (`benchmark_m3.py`) | 43 ms | 63 ms | ≤ 300 ms |
+| Cache hit | single user, through the API (`benchmark_m3.py`) | 19 ms | 24 ms | ≤ 300 ms |
 | Cache hit | 16 concurrent users, live server (`load_test.py`) | 59 ms | 81 ms | ≤ 300 ms |
-| Cold path, offline | single user (`benchmark_m3.py`) | 53 ms | 272 ms | ≤ 8 s |
+| Cold path, offline | single user (`benchmark_m3.py`) | 25 ms | 116 ms | ≤ 8 s |
 | Cold path, live free-tier LLM | 15 new queries, live server | 4.9 s | 6.5 s | ≤ 8 s |
 
 ## 6. Load test
@@ -169,7 +170,46 @@ The free NVIDIA endpoint sometimes answers "503 Service temporarily overloaded".
 fast failure once, and the request then continues without the LLM, so a busy provider costs at most a
 second and never an error.
 
-## 9. Docker
+## 9. Misspelt queries
+
+```bash
+uvicorn backend.main:app --port 8000
+python evaluation/typo_eval.py http://127.0.0.1:8000 typo-first    # or clean-first
+```
+
+`typo_eval.py` sends 12 complaints twice: once misspelt ("mobil data not wrking", "blutooth wont pair
+with my car", "my phone tiem is in 24 hr") and once spelt correctly. Each order was run on a freshly
+started server. Results are in `evaluation/typo_eval_results.json`.
+
+| Mode and order | HTTP errors | Correct spelling gets its own correct plan | Misspelt query gets the same plan as the correct spelling |
+|---|---|---|---|
+| Offline, misspelt first | 0/24 | 12/12 | 5/12 |
+| Offline, correct first | 0/24 | 12/12 | 11/12 |
+| Free-tier LLM, misspelt first | 0/24 | 12/12 | 8/12 |
+
+**Cache poisoning found and fixed.** Before this fix, a misspelt query with no recognisable topic words
+could get a guessed plan. That plan was cached, and the correctly spelt query was then served the wrong
+plan: "mobil data not wrking" got "Screen display damage", and "mobile data not working" received it from
+the cache.
+
+Now a plan is cached only if it is grounded:
+- built from a reference article,
+- built by the settings planner, or
+- a guessed plan whose topic, read from its goal and title, matches topic words in the query itself.
+
+A misspelt query still gets an answer, but it is not stored, so it can never spread to other queries. The
+held-out paraphrase hit rate is unchanged at 80.4% with 0 wrong hits.
+
+**What is still limited.** The misspelt query itself can get a weaker plan when no LLM is available (7/12
+offline differ, mostly the generic "System startup failure"). The LLM fixes most of these, but not all.
+The settings planner, reference matching and the "nothing to go on" check read the raw query before the
+LLM sees it, so "my phone tiem is in 24 hr" is refused in both modes. A spelling-correction step was
+prototyped with a vocabulary taken from the catalog and reference articles. It cost about 5 ms per
+query, but it also changed correct words ("hrs" became "has") and missed some typos ("blury"), so it was
+not shipped. A stronger model with thinking enabled would handle more typos, but it would push cold
+requests past the 8 s target on the free tier.
+
+## 10. Docker
 
 ```bash
 ./start.sh          # or .\start.ps1 on Windows; press Enter at the key prompt for the free tier
@@ -185,8 +225,10 @@ The image was built from a clean cache and started through `start.sh` with an em
   question returned `no_match`, and "turn off bluetooth" returned a Bluetooth Configuration plan.
 - The frontend at `http://localhost:5500` rendered plans, trace data and contract checks from the API.
 
-## 10. Known limitations
+## 11. Known limitations
 
+- **Misspelt queries.** A misspelt query without recognisable topic words can get a generic plan or a
+  refusal, especially without an LLM (§9). It no longer affects the answer to the correctly spelt query.
 - **Offline relevance.** Without an LLM, look-alike queries worded like real complaints can get a plan:
   another device ("my laptop battery drains fast") or small talk ("the weather is too hot today"). With the
   free tier or an OpenAI key the LLM rejects them.

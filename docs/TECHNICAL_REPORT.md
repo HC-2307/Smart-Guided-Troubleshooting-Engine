@@ -195,6 +195,9 @@ Other rules:
 - Plans built from a specific reference article need a stricter similarity (0.75) and get no seeded keys,
   so a generic "my screen keeps flickering" is not served the email-specific plan of official query 1.
 - Seeded variations that contradict the original query are dropped at store time.
+- Only grounded plans are cached: plans from a reference article or the settings planner, or a guessed
+  plan whose topic (read from its goal and title) matches topic words in the query. A misspelt query's
+  guessed plan is answered but never stored, so it cannot be served to the correctly spelt query.
 - The cache is persisted to disk atomically, and the 20 official queries are pre-warmed at start-up
   without LLM calls.
 - Identical requests that arrive at the same time are coalesced into one pipeline run.
@@ -275,6 +278,7 @@ queries, concurrent load and live free-tier providers. The main defects found an
 | Concurrency: p95 6.7 s and inconsistent answers under load | Lock-free fingerprinting, request coalescing, exact aliases |
 | A generic screen question got the email-specific plan from the cache | Stricter reuse for reference-grounded plans |
 | The free-tier provider tripped the breaker during start-up pre-warm | LLM-free pre-warm; budget-cut timeouts no longer count |
+| A misspelt query's guessed plan was cached and then served to the correctly spelt query | Only grounded plans are cached; 12/12 correct spellings now get their own plan |
 
 ## 6. Tech stack
 
@@ -286,7 +290,7 @@ queries, concurrent load and live free-tier providers. The main defects found an
 | Similarity and cache | NumPy; custom catalog-IDF, trigram and facet logic; atomic JSON persistence |
 | Frontend | Plain HTML, CSS and JavaScript served by nginx |
 | Packaging | Docker, Docker Compose, start scripts for bash and PowerShell |
-| Testing | pytest (427 tests), benchmark, robustness, load and audit scripts |
+| Testing | pytest (433 tests), benchmark, robustness, load and audit scripts |
 | AI assistance during development | Antigravity AI (M1), Claude Code (M3); see `docs/LangAI3.0_AI_Disclosure.docx` |
 
 ## 7. Future work
@@ -301,6 +305,10 @@ queries, concurrent load and live free-tier providers. The main defects found an
 - **Wider settings coverage** by embedding the catalog's QnA text and adding user-phrased aliases for the
   8 held-out settings requests that still miss.
 - **Multilingual support**, through an LLM translation step before enrichment.
+- **Typo tolerance before routing.** Misspelt queries are handled by the LLM when it is available, but the
+  settings planner and reference matching still read the raw text. A context-aware spelling correction
+  (for example, one LLM rewrite shared by all stages) would close the gap. A dictionary corrector was
+  prototyped and rejected because it changed correct words.
 
 ## 8. References
 

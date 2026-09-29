@@ -135,3 +135,42 @@ def test_resolution_memo_returns_equal_but_independent_copies():
     first["contexts"][0]["title"] = "mutated"
     assert query_processor.resolve_plan(plan)["contexts"][0]["title"] == "t"
     assert plan["contexts"][0]["actions"][0]["stepGroups"][0].get("actionableDeeplink") is None
+
+
+def _answer(client, query):
+    response = client.post("/v1/troubleshoot", json={"query": query})
+    body = response.json()
+    return (body["contexts"][0]["title"] if body["contexts"] else body["fallback"]), response.headers["X-Cache"]
+
+
+def test_misspelt_query_does_not_poison_the_cache_for_the_correct_spelling():
+    from fastapi.testclient import TestClient
+
+    from backend.main import app
+
+    client = TestClient(app)
+    for typo, clean in [
+        ("mobil data not wrking", "mobile data not working"),
+        ("my phone storge is ful", "my phone storage is full"),
+        ("blutooth wont pair with my car", "bluetooth won't pair with my car"),
+        ("speker not wroking on calls", "speaker not working on calls"),
+    ]:
+        cache.clear()
+        client.post("/v1/troubleshoot", json={"query": typo})
+        after_typo, tier = _answer(client, clean)
+        cache.clear()
+        alone, _ = _answer(client, clean)
+        assert after_typo == alone, (typo, clean, after_typo, tier)
+
+
+def test_confident_plan_is_still_cached_and_reused():
+    from fastapi.testclient import TestClient
+
+    from backend.main import app
+
+    client = TestClient(app)
+    cache.clear()
+    first, tier = _answer(client, "my phone battery drains so fast")
+    assert tier == "miss"
+    second, tier = _answer(client, "my phone batery drainz so fast")
+    assert second == first and tier in {"semantic", "variation"}

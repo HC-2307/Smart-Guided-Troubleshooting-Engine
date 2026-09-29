@@ -15,7 +15,7 @@ from backend.services.query_enrichment import _classify_domain as classify_domai
 from backend.services.text_similarity import QueryFingerprint, facets_conflict, fingerprint, similarity
 
 logger = logging.getLogger("m3")
-CACHE_FILE_VERSION = 3
+CACHE_FILE_VERSION = 4
 
 
 def _normalize(query: str) -> str:
@@ -32,6 +32,10 @@ def domain_evidence(query: str) -> frozenset[str]:
 
 def domains_compatible(evidence: frozenset[str], entry_domain: str) -> bool:
     return not evidence or entry_domain in evidence
+
+
+def plan_topics(response: dict) -> frozenset[str]:
+    return domain_evidence(" ".join(f"{c.get('goal', '')} {c.get('title', '')}" for c in response.get("contexts") or []))
 
 
 @dataclass
@@ -136,7 +140,12 @@ class SemanticCache:
         pinned: bool = False,
         expires_at: Optional[float] = None,
         strict: bool = False,
-    ) -> None:
+        require_topic_match: bool = False,
+    ) -> bool:
+        if require_topic_match and not domain_evidence(query) & plan_topics(response):
+            with self._lock:
+                self._counters["skipped_unconfident"] += 1
+            return False
         exact_key = _normalize(query)
         origin = fingerprint(query)
         domain = self.domain_fn(query)
@@ -181,6 +190,7 @@ class SemanticCache:
                 self._remove(oldest)
                 self._counters["evicted"] += 1
             self.dirty = True
+        return True
 
     def contains(self, query: str) -> bool:
         with self._lock:
@@ -251,6 +261,7 @@ class SemanticCache:
                     "domain": self._counters["reject_domain"],
                     "facet": self._counters["reject_facet"],
                 },
+                "unconfident_not_cached": self._counters["skipped_unconfident"],
                 "pinned": sum(1 for e in self._entries.values() if e.pinned),
                 "variations_filtered": self._counters["variation_filtered"],
                 "evicted": self._counters["evicted"],
@@ -338,9 +349,14 @@ def lookup(query: str) -> CacheLookup:
 
 
 def store(
-    query: str, response: dict, variations: Optional[list[str]] = None, pinned: bool = False, strict: bool = False
-) -> None:
-    _default.store(query, response, variations, pinned, strict=strict)
+    query: str,
+    response: dict,
+    variations: Optional[list[str]] = None,
+    pinned: bool = False,
+    strict: bool = False,
+    require_topic_match: bool = False,
+) -> bool:
+    return _default.store(query, response, variations, pinned, strict=strict, require_topic_match=require_topic_match)
 
 
 def confirm(query: str, hit: CacheLookup) -> None:

@@ -27,7 +27,8 @@ All measured on the submitted code. Details and commands are in [docs/EVALUATION
 | Cache hit P95 ≤ 300 ms | 81 ms under 16 concurrent users |
 | Cold path P95 ≤ 8 s | 6.5 s with the live free-tier LLM, 272 ms offline |
 | Refuse off-topic questions | 15/15 correct with the LLM, 29/30 offline |
-| Tests | 427 passing |
+| Misspelt queries | 0 errors; a typo never changes the answer to the correctly spelt query (12/12) |
+| Tests | 433 passing |
 
 ## Quick start
 
@@ -218,13 +219,14 @@ Returns:
 ## Tests and evaluation
 
 ```bash
-python -m pytest -q                              # 427 unit and integration tests, no network calls
+python -m pytest -q                              # 433 unit and integration tests, no network calls
 python evaluation/benchmark.py                   # M1 schema checks on the 20 official queries
 python evaluation/deeplink_audit.py              # every delivered deeplink checked against the catalog
 python evaluation/benchmark_m2.py                # M2 whole-query matcher benchmark
 python evaluation/benchmark_m3.py                # paraphrase cache hit rate, latency, contract audit
 python evaluation/robustness_eval.py             # labelled official, paraphrase, settings, off-topic, adversarial
 python evaluation/load_test.py http://127.0.0.1:8000 16 10   # concurrent load against a running server
+python evaluation/typo_eval.py http://127.0.0.1:8000 typo-first   # misspelt vs correctly spelt queries
 ```
 
 The tests and benchmarks run without an LLM, so they are deterministic and free. Results, the live
@@ -232,6 +234,10 @@ free-tier run and the Docker run are written up in [docs/EVALUATION.md](docs/EVA
 
 ## Known limitations
 
+- A misspelt query without recognisable topic words ("blutooth wont pair", "my phone tiem is in 24 hr") can get
+  a generic plan or a refusal. Without an LLM this happens for 7 of 12 test typos, and with the free tier for 4 of 12.
+  Guessed plans are never cached, so a typo never changes the answer to the correctly spelt query. A
+  spelling-correction step was tried and left out because it also changed correct words.
 - Without an LLM, look-alike questions worded like real complaints can get a plan ("my laptop battery
   drains fast"). With the free tier or an OpenAI key, the LLM refuses them.
 - Settings requests worded unlike anything in the catalog ("share my internet with my laptop") can miss

@@ -1705,15 +1705,15 @@
   "api_latency": {
     "cold_ms": {
       "count": 24,
-      "p50": 53.066,
-      "p95": 271.946,
-      "mean": 88.413
+      "p50": 24.956,
+      "p95": 115.764,
+      "mean": 39.784
     },
     "hit_ms": {
       "count": 46,
-      "p50": 43.355,
-      "p95": 62.716,
-      "mean": 44.444
+      "p50": 18.907,
+      "p95": 24.044,
+      "mean": 19.525
     },
     "server_metrics": {
       "pipeline": {
@@ -1722,13 +1722,13 @@
         "latency_ms": {
           "hit": {
             "count": 46,
-            "p50": 37.132,
-            "p95": 55.442
+            "p50": 15.778,
+            "p95": 20.982
           },
           "cold": {
             "count": 24,
-            "p50": 47.618,
-            "p95": 264.996
+            "p50": 21.565,
+            "p95": 112.75
           }
         },
         "counters": {
@@ -1746,8 +1746,8 @@
         "est_cost_usd": 0.0
       },
       "cache": {
-        "entries": 24,
-        "keys": 199,
+        "entries": 20,
+        "keys": 159,
         "hits": 46,
         "misses": 24,
         "hit_rate": 0.6571,
@@ -1760,6 +1760,7 @@
           "domain": 0,
           "facet": 0
         },
+        "unconfident_not_cached": 4,
         "pinned": 0,
         "variations_filtered": 14,
         "evicted": 0

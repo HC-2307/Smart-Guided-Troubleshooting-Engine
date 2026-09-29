@@ -30,7 +30,8 @@ def _cache_store(query: str, response: TroubleshootResponse, trace: telemetry.Re
         with telemetry.stage("cache_store"):
             grounded = trace.grounding == "reference"
             variations = None if grounded else response.query_variations
-            cache.store(query, response.model_dump(), variations, strict=grounded)
+            cache.store(query, response.model_dump(), variations, strict=grounded,
+                        require_topic_match=trace.grounding == "domain")
     except Exception as exc:
         trace.errors.append(f"cache_store: {exc!r}")
         logger.warning("request %s cache store failed: %r", trace.request_id, exc)
