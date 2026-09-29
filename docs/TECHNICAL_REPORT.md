@@ -210,8 +210,9 @@ Other rules:
   the budget cut short does not count as a provider failure.
 - **Busy retry.** A fast `429` or `503` gets one retry if the budget allows.
 - **Provider selection.** At start-up `start.sh` / `start.ps1` ask for an OpenAI key. If one is given, it
-  is used with `gpt-4o-mini`. If it is left empty, the team's free NVIDIA tier is used
-  (`nvidia/nemotron-3-super-120b-a12b` with thinking switched off, settings in `backend/free_tier.json`).
+  is used with `gpt-4o-mini`. If it is left empty, a free NVIDIA key (from `NVIDIA_API_KEY` in `.env`, or
+  asked for by the script) enables `nvidia/nemotron-3-super-120b-a12b` with thinking switched off. The
+  endpoint and model are in `backend/free_tier.json`; no key is ever committed, and a test fails if one is.
   The model was chosen after live probes of the free models for latency and reliability.
 - **Offline mode.** `LLM_FREE_TIER=false` runs the fully deterministic pipeline.
 

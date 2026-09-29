@@ -153,7 +153,7 @@ python evaluation/robustness_eval.py  # evaluation/robustness_results.json
 
 ## 8. Live free-tier LLM run
 
-Server started with no key, so it used the free NVIDIA tier. Fifteen new queries were sent one at a time
+Server started with no OpenAI key and an NVIDIA key in `.env`, so it used the free NVIDIA tier. Fifteen new queries were sent one at a time
 (`evaluation/live_free_tier_results.json`).
 
 | Measure | Result |
@@ -212,10 +212,11 @@ requests past the 8 s target on the free tier.
 ## 10. Docker
 
 ```bash
-./start.sh          # or .\start.ps1 on Windows; press Enter at the key prompt for the free tier
+./start.sh          # or .\start.ps1 on Windows; leave the OpenAI key empty for the free NVIDIA tier
 ```
 
-The image was built from a clean cache and started through `start.sh` with an empty key. Results:
+The image was built from a clean cache and started through `start.sh` with an empty OpenAI key and an NVIDIA key.
+Results:
 
 - Image size: 724 MB, including the embedding model and the catalog vectors, so the container needs no
   download at run time.

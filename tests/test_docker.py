@@ -21,17 +21,19 @@ def test_compose_passes_llm_keys_without_hardcoding():
     assert env["GEMINI_API_KEY"] == "${GEMINI_API_KEY:-}"
     assert env["OPENAI_BASE_URL"] == "${OPENAI_BASE_URL:-}"
     assert env["LLM_FREE_TIER"] == "${LLM_FREE_TIER:-true}"
+    assert env["NVIDIA_API_KEY"] == "${NVIDIA_API_KEY:-}"
 
 
 def test_start_scripts_ask_for_key_and_fall_back_to_free_tier():
     for name in ("start.sh", "start.ps1"):
         script = (ROOT / name).read_text(encoding="utf-8")
-        assert "OpenAI API key (leave empty to use the free NVIDIA Nemotron tier)" in script
+        assert "OpenAI API key (leave empty to use the free NVIDIA tier or offline mode)" in script
+        assert "NVIDIA API key (free at build.nvidia.com; leave empty to run offline without an LLM)" in script
         assert "docker compose up --build" in script
         assert "LLM_FREE_TIER" in script
 
 
-def test_dockerfile_ships_free_tier_config():
+def test_dockerfile_ships_free_tier_config_without_a_key():
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "COPY backend/ backend/" in dockerfile
     assert (ROOT / "backend" / "free_tier.json").exists()

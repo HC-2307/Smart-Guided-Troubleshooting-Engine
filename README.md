@@ -42,15 +42,20 @@ You need Docker Desktop, or Docker Engine with Compose v2. Run from the reposito
 .\start.ps1         # Windows PowerShell
 ```
 
-The script asks for an OpenAI API key:
+The script asks for up to two keys. No key is ever stored in this repository.
 
 ```
-OpenAI API key (leave empty to use the free NVIDIA Nemotron tier):
+OpenAI API key (leave empty to use the free NVIDIA tier or offline mode):
+NVIDIA API key (free at build.nvidia.com; leave empty to run offline without an LLM):
 ```
 
-- **Paste a key** to use OpenAI `gpt-4o-mini`.
-- **Press Enter** to use the team's free NVIDIA Nemotron tier (`nvidia/nemotron-3-super-120b-a12b`). No
-  sign-up is needed.
+- **OpenAI key.** Paste one to use OpenAI `gpt-4o-mini`.
+- **NVIDIA key.** Leave the OpenAI key empty and paste a free NVIDIA key to use Nemotron
+  (`nvidia/nemotron-3-super-120b-a12b`). The key is free after sign-up at
+  [build.nvidia.com](https://build.nvidia.com). If `NVIDIA_API_KEY` is already set in your shell or `.env`,
+  this question is skipped.
+- **No key.** Leave both empty to run the fully deterministic offline pipeline. Every feature works
+  without an LLM; only the LLM relevance check and LLM-written plans are skipped.
 
 The script then builds and starts two containers. The first build downloads dependencies and takes a few
 minutes.
@@ -65,9 +70,9 @@ The UI waits until the API reports healthy. Stop everything with `Ctrl+C`, then 
 ### Without the start script
 
 ```bash
-docker compose up --build                                    # free tier by default
+NVIDIA_API_KEY=nvapi-... docker compose up --build           # free NVIDIA tier
 OPENAI_API_KEY=sk-... LLM_MODEL=gpt-4o-mini docker compose up --build   # your own OpenAI key
-LLM_FREE_TIER=false docker compose up --build                # fully offline, no LLM
+docker compose up --build                                    # no key: fully offline, no LLM
 ```
 
 ### Local run without Docker (Python 3.11+)
@@ -81,8 +86,11 @@ python -m http.server 5500 --directory frontend              # optional, serves 
 The provider rules are the same as in Docker:
 
 - If `OPENAI_API_KEY` (or `GEMINI_API_KEY`) is set, in the shell or in `.env`, that key is used.
-- Otherwise the free tier is used.
-- `LLM_FREE_TIER=false` switches the LLM off.
+- Otherwise, if `NVIDIA_API_KEY` is set, the free NVIDIA tier is used.
+- Otherwise, or with `LLM_FREE_TIER=false`, the app runs offline with no LLM.
+
+Put keys in a `.env` file copied from [.env.example](.env.example). `.env` is gitignored, so keys never
+reach the repository.
 
 The server logs the provider it chose at start-up, and `GET /v1/metrics` reports it. Every setting is
 listed in [.env.example](.env.example).
@@ -257,7 +265,7 @@ free-tier run and the Docker run are written up in [docs/EVALUATION.md](docs/EVA
 backend/
   main.py              FastAPI app, request tracing, /health, /v1/metrics
   config.py            settings and LLM provider selection (own key / free tier / offline)
-  free_tier.json       free NVIDIA tier endpoint and model
+  free_tier.json       free NVIDIA tier endpoint and model (the key comes from NVIDIA_API_KEY)
   api/                 /v1/troubleshoot route
   schemas/             request and response models
   services/            pipeline stages (see "How it works")
