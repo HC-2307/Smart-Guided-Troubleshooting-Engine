@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-09-28T18:32:54Z",
+  "timestamp": "2026-09-29T17:17:12Z",
   "total_queries": 20,
   "schema_pass_rate_pct": 100.0,
   "latency_metrics_ms": {
-    "mean": 3.34,
-    "median": 2.12,
-    "p95": 24.38,
-    "min": 1.43,
-    "max": 24.38
+    "mean": 2.08,
+    "median": 1.44,
+    "p95": 11.66,
+    "min": 0.95,
+    "max": 11.66
   },
   "description_word_counts": {
     "min": 5,

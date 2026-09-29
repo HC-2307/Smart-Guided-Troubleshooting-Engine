@@ -1,101 +1,151 @@
 # Smart Guided Troubleshooting Engine
 
-Samsung PRISM Y2026 GenAI Hackathon, Theme 2.
+**Samsung PRISM GenAI Hackathon 2026 · Theme 2: Smart Guided Troubleshooting Engine**
 
-The engine takes a free-text Galaxy device complaint (for example *"my wifi keeps
-disconnecting"*) and returns a structured, step-by-step troubleshooting plan as pure JSON.
-Each step is a Settings interaction, and each action carries a Settings deeplink matched
-from the official catalog. The plan follows the Theme 2 response schema.
+The engine turns a vague Galaxy device complaint, such as *"my phone gets really hot while charging"*, into
+an ordered, step-by-step troubleshooting plan as pure JSON. Each action carries the exact Settings
+deeplink from the official catalog, so the fix is one tap away. Paraphrased questions are answered from a
+guarded semantic cache in milliseconds. Questions that are not about a device, or that are too vague to
+answer, get an empty result instead of an invented plan.
 
-## How it works
+| | |
+|---|---|
+| API | `POST /v1/troubleshoot`, `GET /health`, `GET /v1/metrics` |
+| Demo UI | `http://localhost:5500` |
+| Documentation | [Technical report](docs/TECHNICAL_REPORT.md) · [Evaluation and test report](docs/EVALUATION.md) · [AI usage disclosure](docs/LangAI3.0_AI_Disclosure.docx) |
 
-```
-query ──► semantic cache ──► relevance check ──off-topic──────────────────► no_match
-                                  │ in scope
-              cache hit ◄─────────┤
-                                  ▼
-        M3  settings planner     catalog-only Configuration plan when one entry clearly matches
-                                  │ not a settings request
-                                  ▼
-        M3  reference check      no reference text and no known topic ──► no_siis_context
-                                  ▼
-        M1  query enrichment     domain, issue, technical query, 8–10 paraphrases
-                                  ▼
-        M1  plan structuring     LLM, else reference-text parser, else domain plan
-                                  ▼
-        M2  deeplink matching    catalog deeplink per action (metadata match only)
-                                  ▼
-        M3  contract validation  repair or quarantine anything off-spec, disruption order
-                                  ▼
-        M3  URL-leak check ──► cache store ──► response
-```
+## Results at a glance
 
-| Stage | Where | What it guarantees |
-|---|---|---|
-| Query enrichment | `backend/services/query_enrichment.py` | Normalised query and paraphrases. Uses an LLM if a key is set, otherwise a deterministic fallback. |
-| Relevance check | `backend/services/relevance.py` | Rejects questions that are not about a Galaxy device. LLM verdict when available; otherwise an embedding comparison against labelled examples (`data/relevance_prototypes.json`); otherwise word lists. |
-| Settings plans | `backend/services/config_planner.py`, `catalog_index.py` | Settings requests (for example *"my phone time is in 24 hrs"*) get a Configuration plan built only from the matching catalog entry: its deeplink, switch label and description. Fault reports and weak matches are left to the troubleshooting path. |
-| Plan structuring | `backend/services/troubleshooting_engine.py`, `reference_parser.py` | Without an LLM, steps are parsed from the reference text (SIIS article or raw `siis_response`); every parsed step's words appear in that text. |
-| Deeplink matching | `backend/services/m2_engine.py`, `action_matcher.py`, `deeplink_resolver.py` | Deeplinks come only from `data/deeplinks.json`, matched on `description` / `message` / `qna_description`, never on the URI string. |
-| Semantic cache | `backend/services/cache.py`, `text_similarity.py` | Paraphrased queries hit the cache. Guards stop wrong reuse, for example front vs rear camera or Wi-Fi vs mobile data. Persisted to disk, pre-warmed with the 20 official queries at startup, and deterministic: identical queries always get the same answer, even under concurrent load. |
-| Contract validation | `backend/services/contract_validator.py` | Enforces the graded schema: description of 5–7 words starting "It will", Title Case action names, `auto` / `manual` / `critical` categories, no deeplink on manual actions, toggle polarity, 8–10 variations, and action order toggles → optimizations → reboots → service → critical. |
-| LLM guard | `backend/services/llm_guard.py` | Every LLM call shares a per-request time budget and a circuit breaker, so a slow or failing provider cannot push a request past the 8 s target. |
-| Telemetry | `backend/services/telemetry.py` | Request ID, per-stage timings, cache tier, LLM calls and estimated cost for every request. |
+All measured on the submitted code. Details and commands are in [docs/EVALUATION.md](docs/EVALUATION.md).
+
+| Theme 2 target | Result |
+|---|---|
+| JSON contract on the 20 official queries | 20/20 valid, 0 repairs needed |
+| Zero URL leakage | 0 URLs across all official, adversarial and prompt-injection tests |
+| Deeplinks only from the catalog | 74/74 delivered deeplinks are catalog entries, 0 on/off polarity conflicts |
+| ≥ 80% cache hits on paraphrases | **80.4%** on held-out paraphrases, 0 wrong hits |
+| Cache hit P95 ≤ 300 ms | 81 ms under 16 concurrent users |
+| Cold path P95 ≤ 8 s | 6.5 s with the live free-tier LLM, 272 ms offline |
+| Refuse off-topic questions | 15/15 correct with the LLM, 29/30 offline |
+| Tests | 427 passing |
 
 ## Quick start
 
-### Local (Python 3.11+)
+You need Docker Desktop, or Docker Engine with Compose v2. Run from the repository root:
+
+```bash
+./start.sh          # macOS / Linux / Git Bash
+```
+
+```powershell
+.\start.ps1         # Windows PowerShell
+```
+
+The script asks for an OpenAI API key:
+
+```
+OpenAI API key (leave empty to use the free NVIDIA Nemotron tier):
+```
+
+- **Paste a key** to use OpenAI `gpt-4o-mini`.
+- **Press Enter** to use the team's free NVIDIA Nemotron tier (`nvidia/nemotron-3-super-120b-a12b`). No
+  sign-up is needed.
+
+The script then builds and starts two containers. The first build downloads dependencies and takes a few
+minutes.
+
+| Service | URL |
+|---|---|
+| Demo UI | http://localhost:5500 |
+| API | http://localhost:8000 (`/health`, `/v1/troubleshoot`, `/v1/metrics`) |
+
+The UI waits until the API reports healthy. Stop everything with `Ctrl+C`, then `docker compose down`.
+
+### Without the start script
+
+```bash
+docker compose up --build                                    # free tier by default
+OPENAI_API_KEY=sk-... LLM_MODEL=gpt-4o-mini docker compose up --build   # your own OpenAI key
+LLM_FREE_TIER=false docker compose up --build                # fully offline, no LLM
+```
+
+### Local run without Docker (Python 3.11+)
 
 ```bash
 pip install -r requirements.txt
 uvicorn backend.main:app --port 8000
+python -m http.server 5500 --directory frontend              # optional, serves the UI
 ```
 
-### Docker
+The provider rules are the same as in Docker:
 
-```bash
-docker compose up --build
+- If `OPENAI_API_KEY` (or `GEMINI_API_KEY`) is set, in the shell or in `.env`, that key is used.
+- Otherwise the free tier is used.
+- `LLM_FREE_TIER=false` switches the LLM off.
+
+The server logs the provider it chose at start-up, and `GET /v1/metrics` reports it. Every setting is
+listed in [.env.example](.env.example).
+
+## Using the demo UI
+
+- **Example chips** fill in a query and run it. They cover an official query, fault reports, a
+  paraphrase (to show a cache hit), settings requests, an off-topic question and a query too vague to
+  answer.
+- **The plan** shows each action with its category (Auto opens the screen, Manual is done by hand,
+  Critical is disruptive and always last), its steps and its catalog deeplink. *Open* explains what the
+  deeplink would do; `bixby://` links only resolve on a Galaxy device.
+- **"How this answer was produced"** shows the cache tier, the relevance check, the planner, the number of
+  LLM calls, the estimated cost, the server and round-trip time, and the request ID.
+- **Theme 2 contract checks** re-check the response in the browser: goal phrasing, title length, 5–7 word
+  "It will" descriptions, no URLs, manual actions without deeplinks, critical actions last, and 8–10
+  variations.
+- **Query variations** are clickable. Each one re-runs the engine and should come back from the semantic
+  cache.
+- **Session metrics** show requests, cache hit rate, p95 latency for cache hits and cold requests, and
+  cost.
+- **The raw JSON response** is shown with a copy button.
+- **Shareable links.** `http://localhost:5500/?q=your+question` runs a query on page load.
+
+## How it works
+
+```
+query ─► relevance gate ─► semantic cache ─► settings planner ─► reference check
+            │ off-topic        │ hit              │ settings          │ nothing to go on
+            ▼                  ▼                  ▼                   ▼
+         no_match         cached plan     Configuration plan    no_siis_context
+                                                   │ fault report
+                                                   ▼
+               M1 query enrichment ─► M1 plan structuring (LLM → reference parser → domain plan)
+                                                   ▼
+               M2 catalog deeplink resolution ─► M3 contract validator + URL gate ─► cache ─► JSON
 ```
 
-This starts both the API and the frontend. Open `http://localhost:5500` for the UI.
-`OPENAI_API_KEY` / `GEMINI_API_KEY` are passed through from your shell if set.
+| Stage | Code | What it guarantees |
+|---|---|---|
+| Relevance gate | `backend/services/relevance.py` | Refuses non-device questions. Uses the LLM verdict when available, then embeddings against labelled examples, then word lists. |
+| Semantic cache | `cache.py`, `text_similarity.py` | Paraphrases hit the cache. Domain and facet guards stop wrong reuse (front vs rear camera, Wi-Fi vs mobile data, on vs off). Persisted to disk and pre-warmed with the 20 official queries. |
+| Settings planner | `config_planner.py`, `catalog_index.py` | "My phone time is in 24 hrs" gets a Configuration plan built only from the matching catalog entry. |
+| Query enrichment (M1) | `query_enrichment.py` | Domain, issue, technical query and 8–10 paraphrases, from the LLM or a deterministic fallback. |
+| Plan structuring (M1) | `troubleshooting_engine.py`, `reference_parser.py` | Plan grounded in the reference text. Without an LLM, steps are parsed from the article. |
+| Deeplink resolution (M2) | `m2_engine.py`, `action_matcher.py`, `deeplink_resolver.py` | Deeplinks copied only from `data/deeplinks.json`, matched on description / message / qna_description, never on the URI. |
+| Contract validator | `contract_validator.py`, `validator.py` | Enforces the graded schema in code, removes deeplinks with the wrong on/off polarity, orders actions from toggles to critical, and blocks any URL. |
+| LLM guard | `llm_guard.py` | Shared 5.5 s budget per request, circuit breaker and one retry on a busy provider, so requests stay under 8 s. |
+| Telemetry | `telemetry.py` | Request ID, stage timings, cache tier, LLM calls and cost on every request. |
 
-The image bakes in the embedding model and the catalog vectors at build time, so the container
-needs no internet access at runtime (image size is about 720 MB). The cache is kept on the
-`cache-state` volume and survives container restarts.
-
-In both cases the API is at `http://localhost:8000`. It works without any API key: the
-deterministic fallback handles enrichment and structuring.
-
-### Enabling the LLM path (optional)
-
-Copy [`.env.example`](.env.example) to `.env` and fill in a key. The app loads `.env` on
-startup, and Docker Compose reads it too:
-
-```bash
-cp .env.example .env    # then set OPENAI_API_KEY=...
-uvicorn backend.main:app --port 8000
-```
-
-Variables already set in your shell take priority over `.env`. Any OpenAI-compatible provider
-works by setting `OPENAI_BASE_URL` and `LLM_MODEL` (for example Gemini or NVIDIA).
-
-Every setting and its default is listed in [`.env.example`](.env.example). Never commit a
-real key.
+The full design, the research it builds on and what is new are in
+[docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md).
 
 ## API
 
 ### `POST /v1/troubleshoot`
 
-Request:
-
 ```json
 { "query": "my wifi keeps disconnecting", "siis_response": null }
 ```
 
-`siis_response` is optional and may be the raw reference text (as in the Theme 2 spec) or an
-object `{"title": ..., "content": ...}`. When it is provided, the plan is built from that
-reference text and the cache is bypassed.
+`siis_response` is optional. It may be the raw reference text, as in the Theme 2 spec, or an object
+`{"title": ..., "content": ...}`. When it is given, the plan is built from that text and the cache is
+bypassed.
 
 Response (shortened):
 
@@ -127,131 +177,92 @@ Response (shortened):
 }
 ```
 
-The engine never invents a plan or a deeplink. When it has nothing grounded to offer, it returns
-an empty `contexts` list with one of these `fallback` values:
+When the engine has nothing grounded to offer, it returns an empty `contexts` list and a `fallback`:
 
 | `fallback` | When |
 |---|---|
 | `no_match` | The question is not about a Galaxy device. |
-| `no_siis_context` | The question is about a device, but there is no reference text and no recognisable topic to build a plan from (for example *"my galaxy has a problem"*). |
+| `no_siis_context` | It is about a device, but there is no reference text and no recognisable topic (*"my galaxy has a problem"*). |
 | `validation_failed` | The finished plan still contained a link and was withheld. |
-| `internal_error` | An unexpected failure (HTTP 500). |
-
-Relevance (`backend/services/relevance.py`, prompt in `prompts/relevance_prompt.txt`):
-
-- If an LLM key is set, the LLM decides. Verdicts are memoized per query.
-- Otherwise, or if the LLM call fails, an offline check decides: a confident catalog settings
-  match is accepted; else the query embedding is compared with labelled in-scope and
-  out-of-scope examples; if the embedding model is unavailable, word lists decide.
-- A cache hit accepted by the offline check is served without an LLM call, to keep cache-hit
-  latency low. Set `RELEVANCE_LLM_ON_CACHE_HIT=true` to have the LLM check cache hits too.
-- A request with `siis_response` skips the check.
-
-### Settings requests
-
-When a query asks to change a setting rather than report a fault, and one catalog entry clearly
-matches it, the engine returns a `<Topic> Configuration` plan built only from that entry. For
-example, *"my phone time is in 24 hrs"* returns the **Switch Time Format** action with its catalog
-deeplink and the steps "Open the 24-hour time format settings page." and "Tap Use 24-hour format.".
-On/off requests pick the matching toggle entry ("turn off bluetooth" gives **Disable Bluetooth**).
-Queries with fault words (for example "not working", "keeps", "won't") or no clear match go
-through the normal troubleshooting path. A request with `siis_response` always uses the
-troubleshooting path.
+| `internal_error` | Unexpected failure (HTTP 500), logged with the request ID. |
 
 Response headers:
 
 | Header | Meaning |
 |---|---|
 | `X-Request-ID` | Trace ID. Send your own to correlate logs. |
-| `X-Cache` | `exact`, `semantic`, `variation`, `coalesced` (identical request already in flight) or `miss` |
+| `X-Cache` | `exact`, `semantic`, `variation`, `coalesced` or `miss` |
 | `X-Pipeline-Ms` | Server-side processing time |
-| `X-LLM-Calls`, `X-Est-Cost-USD` | Per-request LLM usage and estimated cost |
-| `X-Relevance` | Which check accepted or rejected the query: `llm`, `semantic`, `keywords` or `skipped` |
-| `X-Planner` | Which planner built the plan: `catalog` (settings request), `m1` (troubleshooting) or `none` |
+| `X-LLM-Calls`, `X-Est-Cost-USD` | LLM usage and estimated cost of this request |
+| `X-Relevance` | Which check decided relevance: `llm`, `semantic`, `keywords` or `skipped` |
+| `X-Planner` | Which planner built the plan: `catalog`, `m1` or `none` |
 
-Errors: a blank or oversized query, or a `siis_response` that is not text or an object (or is
-over 20,000 characters), returns `422`. An unexpected failure returns `500` with
-`{"contexts": [], "fallback": "internal_error"}` and is logged with its request ID.
+A blank or oversized query, or an invalid `siis_response`, returns `422`.
 
 ### `GET /health`
 
-Returns `{"status": "ok"}` once the catalog, the dense index, the persisted cache and the
-pre-warmed official queries are loaded, or `503` if warm-up fails.
+Returns `{"status": "ok"}` once the catalog, dense index, persisted cache and pre-warmed official queries
+are loaded. Returns `503` if warm-up fails.
 
 ### `GET /v1/metrics`
 
-Returns the cache hit rate, hits by tier, p50/p95 latency for hit and cold requests,
-validation repair codes, total estimated cost, dense index status, LLM circuit-breaker state and
-the startup report (entries loaded from disk, queries pre-warmed).
+Returns:
+
+- cache hit rate and hits by tier,
+- p50/p95 latency for cache hits and cold requests,
+- validation repair codes and total estimated cost,
+- dense index status,
+- LLM provider and circuit-breaker state,
+- the start-up report.
 
 ## Tests and evaluation
 
 ```bash
-python -m pytest -q                          # full suite, 394 tests
-python evaluation/benchmark.py               # M1: schema checks on the official queries
-python evaluation/benchmark_m2.py            # M2: deeplink matching scenarios
-python evaluation/benchmark_m3.py            # M3: paraphrase cache hit rate, latency, contract audit
-python evaluation/robustness_eval.py         # labelled good/bad queries and adversarial inputs, end to end
-python evaluation/load_test.py URL 16 10     # concurrent load against a running server
+python -m pytest -q                              # 427 unit and integration tests, no network calls
+python evaluation/benchmark.py                   # M1 schema checks on the 20 official queries
+python evaluation/deeplink_audit.py              # every delivered deeplink checked against the catalog
+python evaluation/benchmark_m2.py                # M2 whole-query matcher benchmark
+python evaluation/benchmark_m3.py                # paraphrase cache hit rate, latency, contract audit
+python evaluation/robustness_eval.py             # labelled official, paraphrase, settings, off-topic, adversarial
+python evaluation/load_test.py http://127.0.0.1:8000 16 10   # concurrent load against a running server
 ```
 
-The test suite strips LLM keys, so it is deterministic and never makes billed calls. Set
-`M3_TESTS_ALLOW_LLM=1` to allow them.
-
-Latest M3 benchmark results (`evaluation/benchmark_m3_results.json`, no LLM):
-
-| Metric | Result | Target |
-|---|---|---|
-| Paraphrase cache hit rate, held-out split | **80.4%** (45/56), 0 wrong hits | ≥80% |
-| Cache-hit latency, server p95 | about 30 ms | ≤300 ms |
-| Cold-path latency, server p95 | about 120 ms | ≤8 s |
-| 20 official queries through the contract validator | 20/20 delivered, 0 repairs | — |
-
-Robustness and load (`evaluation/robustness_results.json`, `evaluation/load_test_results.json`,
-no LLM):
-
-| Check | Result |
-|---|---|
-| Official queries with a plan | 20/20, 10 distinct reference-grounded plans |
-| Troubleshooting paraphrases with a plan | 126/126 |
-| Settings requests (40, 19 held out) | dev 21/21 correct; held-out 11/19 correct, 0 wrong settings plans |
-| Off-topic questions given a plan | 1/30 |
-| Concurrent load, 16 workers, warm server | 181 requests/s, 580/580 OK, p95 45 ms, identical answers for identical queries |
-| Slow LLM provider (live NVIDIA free tier) | every request under 8 s (was 30–60 s before the LLM guard) |
-
-The paraphrase benchmark is small and was written by the team. Method, ablations and
-limitations are in [`docs/M3_RESEARCH_UPGRADE.md`](docs/M3_RESEARCH_UPGRADE.md). How the system
-was stress-tested, what broke and what was fixed is in
-[`docs/M3_ROBUSTNESS_REPORT.md`](docs/M3_ROBUSTNESS_REPORT.md).
+The tests and benchmarks run without an LLM, so they are deterministic and free. Results, the live
+free-tier run and the Docker run are written up in [docs/EVALUATION.md](docs/EVALUATION.md).
 
 ## Known limitations
 
-- Without an LLM, the offline relevance check cannot tell another device or a figure of speech
-  from a phone complaint when the wording is the same (for example *"my laptop battery drains
-  fast"* or *"my patience drains really fast"*). The LLM check handles these when a key is set.
-- Settings requests worded very differently from the catalog (for example *"share my internet
-  with my laptop"*) can miss the settings planner and get a troubleshooting plan instead.
-- Non-English questions are accepted as relevant but get `no_siis_context` without an LLM.
-- The cache lives in one process. On a freshly started server a burst of 16 simultaneous new
-  queries can take up to about 3 s; running several workers would need a shared cache.
-- The Docker image is about 720 MB because it includes the embedding model.
+- Without an LLM, look-alike questions worded like real complaints can get a plan ("my laptop battery
+  drains fast"). With the free tier or an OpenAI key, the LLM refuses them.
+- Settings requests worded unlike anything in the catalog ("share my internet with my laptop") can miss
+  the settings planner.
+- 5 of the 20 reference articles cannot be parsed into steps, so those queries get the domain plan.
+- Some auto actions have no confident catalog match and are delivered without a deeplink rather than with
+  a guessed one.
+- The free NVIDIA tier is slower than a paid provider (about 5–6 s on a cold request) and is sometimes
+  overloaded. The engine then continues without the LLM.
+- The cache lives in one process. Several workers would need a shared store.
+- The Docker image is about 720 MB because it includes the embedding model, so it runs without internet
+  access for embeddings.
 
 ## Repository layout
 
 ```
 backend/
   main.py              FastAPI app, request tracing, /health, /v1/metrics
-  config.py            environment-driven settings
+  config.py            settings and LLM provider selection (own key / free tier / offline)
+  free_tier.json       free NVIDIA tier endpoint and model
   api/                 /v1/troubleshoot route
-  schemas/             request / response models
+  schemas/             request and response models
   services/            pipeline stages (see "How it works")
-data/                  catalog (deeplinks.json), official queries (input.txt), SIIS references
-prompts/               LLM prompts for enrichment and structuring
-contracts/             example payloads passed between pipeline stages
-schemas/               JSON schemas for intermediate outputs
-evaluation/            benchmarks and recorded results
-tests/                 unit, API and integration tests
-docs/                  research write-up and project notes
+frontend/              demo UI (HTML, CSS, JavaScript)
+data/                  catalog (deeplinks.json), official queries (input.txt), SIIS references, schema.py
+prompts/               LLM prompts for relevance, enrichment and structuring
+contracts/, schemas/   example payloads and JSON schemas passed between pipeline stages
+evaluation/            benchmarks, audits, labelled sets and recorded results
+tests/                 unit, API, integration, robustness and load tests
+docs/                  technical report, evaluation report, AI usage disclosure
+start.sh, start.ps1    start-up scripts (ask for a key, then docker compose up)
 Dockerfile, docker-compose.yml
 ```
 
@@ -259,7 +270,10 @@ Dockerfile, docker-compose.yml
 
 | Role | Member | Area |
 |---|---|---|
-| M1 | Arav | LLM and query enrichment, plan structuring |
+| M1 | Arav | LLM query enrichment and plan structuring |
 | M2 | Geetika | Catalog and deeplink matching |
 | M3 | Harshit | Backend API, orchestration, cache, validation, Docker, integration tests |
 | M4 | Asmi | Frontend, evaluation, demo |
+
+AI assistance used during development is declared feature by feature in
+[docs/LangAI3.0_AI_Disclosure.docx](docs/LangAI3.0_AI_Disclosure.docx).

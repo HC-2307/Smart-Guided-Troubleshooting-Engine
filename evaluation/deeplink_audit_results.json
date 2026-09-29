@@ -1,0 +1,42 @@
+{
+ "environment": {
+  "llm": "disabled",
+  "python": "3.14.2"
+ },
+ "official": {
+  "queries": 20,
+  "actions": {
+   "auto": 25,
+   "manual": 31,
+   "critical": 6
+  },
+  "auto_actions_with_deeplink": "13/25",
+  "deeplinks_in_catalog": "13/13",
+  "manual_actions_with_deeplink": 0,
+  "problems": []
+ },
+ "domain_seeds": {
+  "queries": 14,
+  "actions": {
+   "auto": 27,
+   "manual": 9,
+   "critical": 9
+  },
+  "auto_actions_with_deeplink": "22/27",
+  "deeplinks_in_catalog": "22/22",
+  "manual_actions_with_deeplink": 0,
+  "problems": []
+ },
+ "settings_requests": {
+  "queries": 40,
+  "actions": {
+   "auto": 39,
+   "manual": 2,
+   "critical": 2
+  },
+  "auto_actions_with_deeplink": "39/39",
+  "deeplinks_in_catalog": "39/39",
+  "manual_actions_with_deeplink": 0,
+  "problems": []
+ }
+}

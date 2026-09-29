@@ -1,23 +1,23 @@
 {
   "requests": 580,
   "workers": 16,
-  "wall_seconds": 3.21,
-  "throughput_rps": 180.7,
+  "wall_seconds": 2.23,
+  "throughput_rps": 260.7,
   "status_codes": {
     "200": 580
   },
   "latency_ms": {
     "hit": {
       "count": 550,
-      "p50": 30.3,
-      "p95": 44.9,
-      "max": 2119.7
+      "p50": 59.1,
+      "p95": 81.0,
+      "max": 99.3
     },
     "miss": {
       "count": 30,
-      "p50": 32.2,
-      "p95": 36.6,
-      "max": 36.7
+      "p50": 68.3,
+      "p95": 95.4,
+      "max": 99.2
     }
   },
   "queries_with_inconsistent_answers": []

@@ -1705,15 +1705,15 @@
   "api_latency": {
     "cold_ms": {
       "count": 24,
-      "p50": 62.146,
-      "p95": 310.361,
-      "mean": 97.834
+      "p50": 53.066,
+      "p95": 271.946,
+      "mean": 88.413
     },
     "hit_ms": {
       "count": 46,
-      "p50": 50.318,
-      "p95": 77.895,
-      "mean": 53.033
+      "p50": 43.355,
+      "p95": 62.716,
+      "mean": 44.444
     },
     "server_metrics": {
       "pipeline": {
@@ -1722,13 +1722,13 @@
         "latency_ms": {
           "hit": {
             "count": 46,
-            "p50": 42.723,
-            "p95": 70.838
+            "p50": 37.132,
+            "p95": 55.442
           },
           "cold": {
             "count": 24,
-            "p50": 56.332,
-            "p95": 303.606
+            "p50": 47.618,
+            "p95": 264.996
           }
         },
         "counters": {
@@ -1770,7 +1770,11 @@
         "consecutive_failures": 0,
         "trips": 0
       },
-      "startup": {}
+      "startup": {},
+      "llm": {
+        "provider": "offline",
+        "model": null
+      }
     }
   },
   "official_contract_audit": {
