@@ -73,6 +73,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Cache", "X-Pipeline-Ms", "X-LLM-Calls", "X-Est-Cost-USD", "X-Relevance", "X-Planner"],
 )
 app.include_router(router, prefix="/v1")
 

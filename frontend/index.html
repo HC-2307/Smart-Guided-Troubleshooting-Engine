@@ -8,39 +8,45 @@
 </head>
 <body>
 
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">S</span>
+      <div>
+        <div class="brand-name">Smart Guided Troubleshooting Engine</div>
+        <div class="brand-sub">Samsung PRISM GenAI Hackathon 2026 · Theme 2</div>
+      </div>
+    </div>
+    <div class="status-pills">
+      <span id="api-pill" class="pill pill-wait" title="GET /health">API: checking…</span>
+      <span id="llm-pill" class="pill pill-wait" title="LLM provider in use">LLM: checking…</span>
+    </div>
+  </header>
+
   <main class="page">
 
-    <header class="hero">
-      <p class="hero-kicker">Samsung PRISM · Theme 02</p>
-      <h1>What's wrong with your device?</h1>
-      <p class="hero-sub">Describe the problem in your own words. No technical terms needed.</p>
+    <section class="ask">
+      <h1>Describe the device problem in your own words</h1>
+      <p class="ask-sub">The engine returns a step-by-step plan with a one-tap Settings deeplink for each action, as the Theme 2 JSON contract.</p>
 
       <form id="query-form" class="query-form">
-        <input
-          id="query-input"
-          type="text"
-          placeholder="e.g. my phone dies really fast and gets hot"
-          autocomplete="off"
-        />
+        <input id="query-input" type="text" autocomplete="off"
+               placeholder="e.g. my phone gets really hot while charging" maxlength="2000" />
         <button type="submit" id="submit-btn">Troubleshoot</button>
       </form>
-    </header>
 
-    <section id="results" class="results" aria-live="polite">
-      <!-- populated by app.js: loading / empty / error / plan states -->
+      <div class="examples">
+        <span class="examples-label">Try:</span>
+        <div id="example-chips" class="chips"></div>
+      </div>
     </section>
+
+    <section id="metrics-strip" class="metrics-strip" aria-label="Session metrics"></section>
+
+    <section id="results" class="results" aria-live="polite"></section>
 
   </main>
 
-  <button id="dev-toggle" class="dev-toggle" type="button" title="Toggle developer panel">⚙</button>
-  <aside id="dev-panel" class="dev-panel hidden">
-    <div class="dev-panel-head">
-      <span>Developer panel</span>
-      <button id="dev-close" type="button">×</button>
-    </div>
-    <dl id="dev-meta" class="dev-meta"></dl>
-    <pre id="dev-json" class="dev-json"></pre>
-  </aside>
+  <div id="toast" class="toast hidden" role="status"></div>
 
   <script src="config.js"></script>
   <script src="app.js"></script>
