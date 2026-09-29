@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 from contextlib import asynccontextmanager
 
@@ -7,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.api.troubleshoot import router
-from backend.config import settings
+from backend.config import LLM_PROVIDER, settings
 from backend.services import cache, llm_guard, telemetry
 from backend.services.catalog_index import dense_index
 from backend.services.config_planner import ensure_dense_index
@@ -55,6 +56,7 @@ def _persist_loop(stop: threading.Event) -> None:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    logging.getLogger("uvicorn.error").info("LLM provider: %s (%s)", LLM_PROVIDER, os.getenv("LLM_MODEL", "gpt-4o-mini") if LLM_PROVIDER != "offline" else "no LLM")
     warm_up()
     stop = threading.Event()
     writer = threading.Thread(target=_persist_loop, args=(stop,), daemon=True)
@@ -110,4 +112,5 @@ def metrics():
         "dense_index": dense_index.status,
         "llm_guard": llm_guard.guard.state(),
         "startup": startup_report,
+        "llm": {"provider": LLM_PROVIDER, "model": os.getenv("LLM_MODEL", "gpt-4o-mini") if LLM_PROVIDER != "offline" else None},
     }

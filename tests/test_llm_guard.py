@@ -128,3 +128,91 @@ def test_metrics_report_breaker_state(monkeypatch):
     _failing_provider(monkeypatch)
     client.post("/v1/troubleshoot", json={"query": "my phone battery drains fast"})
     assert client.get("/v1/metrics").json()["llm_guard"]["open"] is True
+
+
+def _timing_out_provider(monkeypatch):
+    class Slow:
+        chat = property(lambda self: self)
+        completions = property(lambda self: self)
+
+        def create(self, **kwargs):
+            raise TimeoutError("timed out")
+
+    monkeypatch.setattr(llm_guard, "client", lambda timeout: Slow())
+
+
+def test_timeout_shortened_by_the_request_budget_does_not_count_against_the_provider(monkeypatch):
+    _timing_out_provider(monkeypatch)
+    telemetry.begin()
+    telemetry.current().started -= llm_guard.settings.llm_request_budget_seconds - 2.0
+    for _ in range(llm_guard.settings.llm_breaker_failures):
+        with pytest.raises(TimeoutError):
+            chat_json([{"role": "user", "content": "hi"}], temperature=0)
+    assert llm_guard.guard.state() == {"open": False, "consecutive_failures": 0, "trips": 0}
+
+
+def test_timeout_with_the_full_call_time_still_counts(monkeypatch):
+    _timing_out_provider(monkeypatch)
+    telemetry.begin()
+    with pytest.raises(TimeoutError):
+        chat_json([{"role": "user", "content": "hi"}], temperature=0)
+    assert llm_guard.guard.state()["consecutive_failures"] == 1
+
+
+def test_suspended_guard_blocks_llm_calls_without_counting_failures(monkeypatch):
+    monkeypatch.setattr(llm_guard, "client", lambda timeout: pytest.fail("provider must not be called"))
+    telemetry.begin()
+    with llm_guard.guard.suspended():
+        with pytest.raises(LLMUnavailable):
+            chat_json([{"role": "user", "content": "hi"}], temperature=0)
+    assert llm_guard.guard.allow()
+    assert llm_guard.guard.state()["consecutive_failures"] == 0
+
+
+def test_prewarm_builds_official_plans_without_calling_the_llm(fake_llm):
+    from backend.services import orchestrator
+
+    report = orchestrator.prewarm()
+    assert report["built"] == 20 and report["failed"] == 0
+    assert fake_llm["calls"] == []
+
+
+class Busy(Exception):
+    status_code = 503
+
+
+def _flaky_provider(monkeypatch, failures):
+    calls = {"n": 0}
+
+    class Reply:
+        choices = [type("Choice", (), {"message": type("Message", (), {"content": '{"ok": true}'})()})()]
+
+    class Flaky:
+        chat = property(lambda self: self)
+        completions = property(lambda self: self)
+
+        def create(self, **kwargs):
+            calls["n"] += 1
+            if calls["n"] <= failures:
+                raise Busy("Service temporarily overloaded")
+            return Reply()
+
+    monkeypatch.setattr(llm_guard, "client", lambda timeout: Flaky())
+    return calls
+
+
+def test_busy_provider_is_retried_once(monkeypatch):
+    calls = _flaky_provider(monkeypatch, failures=1)
+    telemetry.begin()
+    assert chat_json([{"role": "user", "content": "hi"}], temperature=0) == '{"ok": true}'
+    assert calls["n"] == 2
+    assert llm_guard.guard.state()["consecutive_failures"] == 0
+
+
+def test_busy_provider_twice_counts_one_failure(monkeypatch):
+    calls = _flaky_provider(monkeypatch, failures=5)
+    telemetry.begin()
+    with pytest.raises(Busy):
+        chat_json([{"role": "user", "content": "hi"}], temperature=0)
+    assert calls["n"] == 2
+    assert llm_guard.guard.state()["consecutive_failures"] == 1

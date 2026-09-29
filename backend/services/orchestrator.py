@@ -5,7 +5,7 @@ import threading
 
 from backend.schemas.troubleshoot import TroubleshootResponse
 from backend.config import BASE_DIR, settings
-from backend.services import cache, telemetry
+from backend.services import cache, llm_guard, telemetry
 from backend.services.config_planner import match as settings_match
 from backend.services.contract_validator import validate_and_repair
 from backend.services.query_processor import process_query
@@ -139,7 +139,8 @@ def prewarm() -> dict:
             continue
         telemetry.begin()
         try:
-            repaired, _ = validate_and_repair(process_query(query, siis))
+            with llm_guard.guard.suspended():
+                repaired, _ = validate_and_repair(process_query(query, siis))
             response = TroubleshootResponse(**repaired)
             if not response.contexts or check_no_url_leakage(response):
                 report["failed"] += 1

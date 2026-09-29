@@ -3,6 +3,7 @@ import logging
 import os
 import threading
 import time
+from contextlib import contextmanager
 from typing import Any, Callable, Optional
 
 from backend.config import settings
@@ -19,6 +20,7 @@ class LLMGuard:
     def __init__(self, clock: Callable[[], float] = time.monotonic) -> None:
         self._lock = threading.Lock()
         self._clock = clock
+        self._local = threading.local()
         self.reset()
 
     def reset(self) -> None:
@@ -35,7 +37,17 @@ class LLMGuard:
         elapsed = (time.perf_counter() - telemetry.current().started)
         return settings.llm_request_budget_seconds - elapsed
 
+    @contextmanager
+    def suspended(self):
+        self._local.suspended = True
+        try:
+            yield
+        finally:
+            self._local.suspended = False
+
     def allow(self) -> bool:
+        if getattr(self._local, "suspended", False):
+            return False
         return not self.is_open() and self.remaining_budget() >= settings.llm_min_call_seconds
 
     def timeout(self, cap: Optional[float] = None) -> float:
@@ -90,20 +102,34 @@ def client(timeout: float):
     )
 
 
+def _is_timeout(exc: Exception) -> bool:
+    return isinstance(exc, TimeoutError) or "Timeout" in type(exc).__name__
+
+
+def _busy(exc: Exception) -> bool:
+    return getattr(exc, "status_code", None) in (429, 503)
+
+
 def chat_json(messages: list[dict], temperature: float, max_tokens: Optional[int] = None, cap: Optional[float] = None) -> str:
-    if not guard.allow():
-        raise LLMUnavailable("llm skipped: circuit open or request budget spent")
-    timeout = guard.timeout(cap)
-    telemetry.current().llm_calls += 1
-    kwargs: dict[str, Any] = {"response_format": {"type": "json_object"}, "temperature": temperature, "timeout": timeout}
-    if max_tokens:
-        kwargs["max_tokens"] = max_tokens
-    try:
-        response = client(timeout).chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"), messages=messages, **kwargs, **request_options()
-        )
-    except Exception:
-        guard.record_failure()
-        raise
-    guard.record_success()
-    return response.choices[0].message.content or ""
+    for attempt in range(2):
+        if not guard.allow():
+            raise LLMUnavailable("llm skipped: circuit open or request budget spent")
+        timeout = guard.timeout(cap)
+        cut_by_budget = timeout < 0.8 * min(settings.llm_call_timeout_seconds, cap or settings.llm_call_timeout_seconds, settings.llm_request_budget_seconds)
+        telemetry.current().llm_calls += 1
+        kwargs: dict[str, Any] = {"response_format": {"type": "json_object"}, "temperature": temperature, "timeout": timeout}
+        if max_tokens:
+            kwargs["max_tokens"] = max_tokens
+        try:
+            response = client(timeout).chat.completions.create(
+                model=os.getenv("LLM_MODEL", "gpt-4o-mini"), messages=messages, **kwargs, **request_options()
+            )
+        except Exception as exc:
+            if attempt == 0 and _busy(exc) and guard.allow():
+                continue
+            if not (cut_by_budget and _is_timeout(exc)):
+                guard.record_failure()
+            raise
+        guard.record_success()
+        return response.choices[0].message.content or ""
+    raise LLMUnavailable("llm skipped: provider busy")

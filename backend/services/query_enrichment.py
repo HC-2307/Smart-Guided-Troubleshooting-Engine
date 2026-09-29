@@ -327,6 +327,10 @@ def _call_llm_for_enrichment(query: str) -> Optional[Dict[str, Any]]:
     if not api_key:
         return None
 
+    from backend.services.llm_guard import guard
+    if not guard.allow():
+        return None
+
     try:
         from backend.services.llm_guard import chat_json
         prompt_template = load_enrichment_prompt()

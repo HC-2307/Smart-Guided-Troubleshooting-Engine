@@ -1,3 +1,4 @@
+import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +15,31 @@ def load_env_file(path: Path = ENV_FILE) -> bool:
 
 
 load_env_file()
+
+FREE_TIER_PATH = BASE_DIR / "backend" / "free_tier.json"
+LLM_VARS = ("OPENAI_API_KEY", "GEMINI_API_KEY", "OPENAI_BASE_URL", "LLM_MODEL", "LLM_EXTRA_BODY", "LLM_REASONING_EFFORT")
+
+
+def apply_llm_provider(path: Path = FREE_TIER_PATH) -> str:
+    for name in LLM_VARS:
+        if name in os.environ and not os.environ[name].strip():
+            del os.environ[name]
+    if os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY"):
+        return "own_key"
+    if os.getenv("LLM_FREE_TIER", "true").strip().lower() not in ("1", "true", "yes", "on"):
+        return "offline"
+    try:
+        free_tier = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "offline"
+    if not free_tier.get("OPENAI_API_KEY"):
+        return "offline"
+    os.environ.update({name: str(value) for name, value in free_tier.items() if value})
+    os.environ.setdefault("LLM_COST_PER_CALL_USD", "0")
+    return "free_tier"
+
+
+LLM_PROVIDER = apply_llm_provider()
 
 
 def _env_float(name: str, default: float) -> float:

@@ -7,13 +7,14 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 os.environ["CACHE_PERSIST_PATH"] = ""
+os.environ.setdefault("LLM_FREE_TIER", "false")
 
 
 @pytest.fixture(autouse=True)
 def deterministic_pipeline(monkeypatch):
     if os.getenv("M3_TESTS_ALLOW_LLM") != "1":
-        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        for name in ("OPENAI_API_KEY", "GEMINI_API_KEY", "OPENAI_BASE_URL", "LLM_MODEL", "LLM_EXTRA_BODY", "LLM_REASONING_EFFORT"):
+            monkeypatch.delenv(name, raising=False)
     from backend.services import cache, llm_guard, relevance, telemetry
     relevance._llm_verdict.cache_clear()
     llm_guard.guard.reset()
