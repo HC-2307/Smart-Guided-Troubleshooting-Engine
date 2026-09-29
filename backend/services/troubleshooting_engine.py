@@ -65,26 +65,39 @@ def find_matching_siis(query: str) -> Optional[Dict[str, Any]]:
     responses = load_siis_data()
     q_clean = re.sub(r"^[0-9]+[\.\)]\s*", "", query.lower()).strip().strip('"')
 
-    # 1. Exact or substring match on original query
+    # 1. Exact or substring match on original query (substring only for long queries)
     for item in responses:
         orig = re.sub(r"^[0-9]+[\.\)]\s*", "", item.get("original_query", "").lower()).strip().strip('"')
-        if orig in q_clean or q_clean in orig:
+        if orig == q_clean or (len(q_clean.split()) >= SIIS_MIN_SUBSTRING_WORDS and (orig in q_clean or q_clean in orig)):
             return item.get("siis_response")
 
-    # 2. Token overlap similarity match
-    q_words = set(re.findall(r"\w+", q_clean))
+    # 2. Content-word overlap match
+    q_words = _content_words(q_clean)
     best_match = None
     best_overlap = 0
 
     for item in responses:
-        orig = item.get("original_query", "").lower()
-        orig_words = set(re.findall(r"\w+", orig))
+        orig_words = _content_words(item.get("original_query", "").lower())
         overlap = len(q_words.intersection(orig_words))
-        if overlap > best_overlap and overlap >= 4:
+        if overlap > best_overlap and overlap >= 4 and overlap >= SIIS_MIN_COVERAGE * len(q_words):
             best_overlap = overlap
             best_match = item.get("siis_response")
 
     return best_match
+
+
+SIIS_MIN_SUBSTRING_WORDS = 6
+SIIS_MIN_COVERAGE = 0.5
+SIIS_STOPWORDS = {
+    "the", "a", "an", "my", "i", "me", "is", "are", "was", "it", "its", "and", "or", "to", "of", "on", "in", "at",
+    "for", "with", "when", "so", "but", "this", "that", "be", "have", "has", "had", "do", "does", "did", "can",
+    "what", "how", "why", "not", "no", "am", "i'm", "im", "any", "all", "even", "just", "from", "by", "as", "if",
+    "then", "than", "too", "very", "also", "again", "about", "after", "before", "while", "into", "out", "up",
+}
+
+
+def _content_words(text: str) -> set:
+    return {w for w in re.findall(r"\w+", text) if len(w) > 2 and w not in SIIS_STOPWORDS}
 
 
 def format_title(raw_title: str, domain: str) -> str:
@@ -569,6 +582,16 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str, original_q
                     "category": "auto",
                 },
                 {
+                    "actionName": "Back Up Phone Data",
+                    "description": "It will back up your personal data.",
+                    "stepGroups": [{"steps": [
+                        "Navigate to and open Settings.",
+                        "Tap on Accounts and backup.",
+                        "Select Back up data to secure your personal files.",
+                    ], "actionableDeeplink": None, "validationDeeplink": None}],
+                    "category": "auto",
+                },
+                {
                     "actionName": "Clear App Cache",
                     "description": "It will remove temporary app cache files.",
                     "stepGroups": [{"steps": [
@@ -577,16 +600,6 @@ def _build_domain_plan(domain: str, issue: str, technical_query: str, original_q
                         "Select the app using the most space.",
                         "Tap Storage.",
                         "Tap Clear cache.",
-                    ], "actionableDeeplink": None, "validationDeeplink": None}],
-                    "category": "auto",
-                },
-                {
-                    "actionName": "Back Up Phone Data",
-                    "description": "It will back up your personal data.",
-                    "stepGroups": [{"steps": [
-                        "Navigate to and open Settings.",
-                        "Tap on Accounts and backup.",
-                        "Select Back up data to secure your personal files.",
                     ], "actionableDeeplink": None, "validationDeeplink": None}],
                     "category": "auto",
                 },
@@ -653,8 +666,12 @@ def _call_llm_for_structure(
     if not api_key:
         return None
 
+    from backend.services.llm_guard import guard
+    if not guard.allow():
+        return None
+
     try:
-        from openai import OpenAI
+        from backend.services.llm_guard import chat_json
         prompt_template = load_structure_prompt()
         prompt = (
             prompt_template
@@ -665,21 +682,13 @@ def _call_llm_for_structure(
             .replace("{siis_content}", siis_content[:2000] if siis_content else "None available")
         )
 
-        client = OpenAI(
-            api_key=api_key,
-            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        )
-        response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
-            messages=[
+        content = chat_json(
+            [
                 {"role": "system", "content": "You are a Samsung Diagnostic Engine. Output ONLY valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            response_format={"type": "json_object"},
             temperature=0.2,
-            timeout=15
         )
-        content = response.choices[0].message.content
         if content:
             import json_repair
             data = json_repair.loads(content)
@@ -721,7 +730,10 @@ def generate_troubleshooting_plan(
     # 2. Attempt LLM structure generation if provider is active
     raw_plan = _call_llm_for_structure(technical_query, domain, issue, context, siis_content)
 
-    # 3. Fallback to domain-specific grounded plan
+    # 3. Fallback: parse the reference text, else domain-specific grounded plan
+    if not raw_plan and siis_response:
+        from backend.services.reference_parser import parse_reference
+        raw_plan = parse_reference(siis_response, domain.capitalize())
     if not raw_plan:
         raw_plan = _build_domain_plan(domain, issue, technical_query, orig_query)
 

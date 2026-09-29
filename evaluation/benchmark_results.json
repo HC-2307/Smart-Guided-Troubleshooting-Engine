@@ -1,18 +1,18 @@
 {
-  "timestamp": "2026-09-20T17:21:43Z",
+  "timestamp": "2026-09-29T17:17:12Z",
   "total_queries": 20,
   "schema_pass_rate_pct": 100.0,
   "latency_metrics_ms": {
-    "mean": 0.64,
-    "median": 0.38,
-    "p95": 4.91,
-    "min": 0.28,
-    "max": 4.91
+    "mean": 2.08,
+    "median": 1.44,
+    "p95": 11.66,
+    "min": 0.95,
+    "max": 11.66
   },
   "description_word_counts": {
-    "min": 52,
-    "max": 56,
-    "all_in_50_to_70": true
+    "min": 5,
+    "max": 7,
+    "all_in_50_to_70": false
   },
   "critical_ordering_compliance_pct": 100.0,
   "zero_url_leakage_pct": 100.0

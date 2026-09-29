@@ -1,5 +1,7 @@
 import difflib
 import logging
+
+import numpy as np
 import os
 import re
 from functools import lru_cache
@@ -89,30 +91,72 @@ def is_device_query(query: str) -> bool:
     return bool((context.search(text) or MODEL_NAME.search(text)) and symptoms)
 
 
+
+PROTOTYPES_PATH = BASE_DIR / "data" / "relevance_prototypes.json"
+OFFICIAL_QUERIES_PATH = BASE_DIR / "data" / "input.txt"
+SEMANTIC_TOP_K = 3
+
+
+@lru_cache(maxsize=1)
+def _prototypes() -> tuple[list[str], list[str]]:
+    import json
+
+    data = json.loads(PROTOTYPES_PATH.read_text(encoding="utf-8"))
+    official = [q.strip() for q in OFFICIAL_QUERIES_PATH.read_text(encoding="utf-8").splitlines() if q.strip()]
+    return data["in_scope"] + official, data["out_of_scope"]
+
+
+def semantic_relevant(query: str) -> bool | None:
+    from backend.services.catalog_index import dense_index
+    from backend.services.config_planner import ensure_dense_index
+
+    if not settings.semantic_relevance_enabled or not ensure_dense_index():
+        return None
+    try:
+        in_scope, out_of_scope = _prototypes()
+    except (OSError, ValueError, KeyError) as exc:
+        logger.warning("relevance prototypes unavailable: %r", exc)
+        return None
+    inside, outside = dense_index.matrix_for(in_scope), dense_index.matrix_for(out_of_scope)
+    vector = dense_index.encode_query(query)
+    if inside is None or outside is None or vector is None:
+        return None
+    k = SEMANTIC_TOP_K
+    score_in = float(np.sort(inside @ vector)[-k:].mean())
+    score_out = float(np.sort(outside @ vector)[-k:].mean())
+    return score_in - score_out > settings.semantic_relevance_margin
+
+
+def offline_relevance(query: str) -> tuple[bool, str]:
+    from backend.services.config_planner import match
+
+    found = match(query)
+    if found is not None:
+        return True, "keywords" if found.source == "keyword" else "semantic"
+    verdict = semantic_relevant(query)
+    if verdict is not None:
+        return verdict, "semantic"
+    return is_device_query(query), "keywords"
+
+
+def keyword_relevant(query: str) -> bool:
+    return offline_relevance(query)[0]
+
+
 @lru_cache(maxsize=1)
 def _prompt() -> str:
     return Path(PROMPT_PATH).read_text(encoding="utf-8")
 
 
 def _ask_llm(query: str) -> str:
-    from openai import OpenAI
+    from backend.services.llm_guard import chat_json
 
-    client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY"),
-        base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        max_retries=0,
-    )
-    effort = os.getenv("LLM_REASONING_EFFORT", "").strip()
-    response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
-        messages=[{"role": "user", "content": _prompt().replace("{user_query}", query)}],
-        response_format={"type": "json_object"},
+    return chat_json(
+        [{"role": "user", "content": _prompt().replace("{user_query}", query)}],
         temperature=0,
         max_tokens=20,
-        timeout=settings.relevance_llm_timeout_seconds,
-        **({"reasoning_effort": effort} if effort else {}),
+        cap=settings.relevance_llm_timeout_seconds,
     )
-    return response.choices[0].message.content or ""
 
 
 def _parse_verdict(content: str) -> bool:
@@ -126,7 +170,6 @@ def _parse_verdict(content: str) -> bool:
 
 @lru_cache(maxsize=2048)
 def _llm_verdict(normalized_query: str) -> bool:
-    telemetry.current().llm_calls += 1
     return _parse_verdict(_ask_llm(normalized_query))
 
 
@@ -139,6 +182,6 @@ def check_relevance(query: str) -> bool:
             return verdict
         except Exception as exc:
             trace.errors.append(f"relevance_llm: {exc!r}")
-            logger.warning("request %s relevance llm failed, using keywords: %r", trace.request_id, exc)
-    trace.relevance = "keywords"
-    return is_device_query(query)
+            logger.warning("request %s relevance llm failed, using the offline check: %r", trace.request_id, exc)
+    verdict, trace.relevance = offline_relevance(query)
+    return verdict

@@ -1,0 +1,189 @@
+{
+ "provider": {
+  "provider": "free_tier",
+  "model": "nvidia/nemotron-3-super-120b-a12b"
+ },
+ "rows": [
+  {
+   "query": "my earbuds keep cutting out during calls",
+   "ms": 5527,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "System startup failure"
+   ]
+  },
+  {
+   "query": "my phone gets really hot while charging",
+   "ms": 6015,
+   "llm_calls": 3,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Battery drain issue"
+   ]
+  },
+  {
+   "query": "my camera app crashes when I open it",
+   "ms": 6462,
+   "llm_calls": 3,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Camera focus failure"
+   ]
+  },
+  {
+   "query": "my wifi keeps disconnecting",
+   "ms": 6377,
+   "llm_calls": 3,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Network connection issue"
+   ]
+  },
+  {
+   "query": "bluetooth won't pair with my car",
+   "ms": 4900,
+   "llm_calls": 2,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Network connection issue"
+   ]
+  },
+  {
+   "query": "my phone storage is always full",
+   "ms": 4887,
+   "llm_calls": 2,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Storage space full"
+   ]
+  },
+  {
+   "query": "apps keep freezing on my galaxy",
+   "ms": 6084,
+   "llm_calls": 3,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Device performance lag"
+   ]
+  },
+  {
+   "query": "my screen keeps flickering",
+   "ms": 4639,
+   "llm_calls": 2,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Screen display damage"
+   ]
+  },
+  {
+   "query": "how do I turn off auto brightness",
+   "ms": 1281,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "catalog",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Auto dim screen"
+   ]
+  },
+  {
+   "query": "what is the capital of france",
+   "ms": 1283,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "none",
+   "cache": "miss",
+   "fallback": "no_match",
+   "title": []
+  },
+  {
+   "query": "my laptop battery drains fast",
+   "ms": 1951,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "none",
+   "cache": "miss",
+   "fallback": "no_match",
+   "title": []
+  },
+  {
+   "query": "best pizza near me",
+   "ms": 1782,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "none",
+   "cache": "miss",
+   "fallback": "no_match",
+   "title": []
+  },
+  {
+   "query": "my phone reboots randomly at night",
+   "ms": 6283,
+   "llm_calls": 2,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "System startup failure"
+   ]
+  },
+  {
+   "query": "notifications are not showing up",
+   "ms": 1136,
+   "llm_calls": 1,
+   "relevance": "llm",
+   "planner": "none",
+   "cache": "miss",
+   "fallback": "no_siis_context",
+   "title": []
+  },
+  {
+   "query": "the touch screen is not responding properly",
+   "ms": 5340,
+   "llm_calls": 2,
+   "relevance": "llm",
+   "planner": "m1",
+   "cache": "miss",
+   "fallback": null,
+   "title": [
+    "Screen display damage"
+   ]
+  }
+ ],
+ "p50_ms": 4900,
+ "p95_ms": 6462,
+ "max_ms": 6462,
+ "llm_verdicts": 15,
+ "breaker": {
+  "open": false,
+  "consecutive_failures": 0,
+  "trips": 0
+ }
+}

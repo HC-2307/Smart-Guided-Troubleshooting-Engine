@@ -79,7 +79,7 @@ def _classify_domain(query: str) -> str:
         for kw in kws:
             if re.search(r"\b" + re.escape(kw) + r"\b", q_lower):
                 scores[domain] += 2
-            elif kw in q_lower:
+            elif re.search(r"\b" + re.escape(kw), q_lower):
                 scores[domain] += 1
 
     best_domain = max(scores, key=scores.get)
@@ -327,26 +327,22 @@ def _call_llm_for_enrichment(query: str) -> Optional[Dict[str, Any]]:
     if not api_key:
         return None
 
+    from backend.services.llm_guard import guard
+    if not guard.allow():
+        return None
+
     try:
-        from openai import OpenAI
+        from backend.services.llm_guard import chat_json
         prompt_template = load_enrichment_prompt()
         prompt = prompt_template.replace("{user_query}", query) if prompt_template else f"Normalize query: {query}"
 
-        client = OpenAI(
-            api_key=api_key,
-            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-        )
-        response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4o-mini"),
-            messages=[
+        content = chat_json(
+            [
                 {"role": "system", "content": "You are a Samsung Diagnostic AI. Return ONLY a valid JSON object."},
                 {"role": "user", "content": prompt}
             ],
-            response_format={"type": "json_object"},
             temperature=0.2,
-            timeout=10
         )
-        content = response.choices[0].message.content
         if content:
             import json_repair
             data = json_repair.loads(content)

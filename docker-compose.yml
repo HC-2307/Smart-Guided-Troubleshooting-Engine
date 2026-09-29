@@ -6,14 +6,19 @@ services:
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
       LLM_REASONING_EFFORT: ${LLM_REASONING_EFFORT:-}
+      LLM_EXTRA_BODY: ${LLM_EXTRA_BODY:-}
+      LLM_FREE_TIER: ${LLM_FREE_TIER:-true}
+    volumes:
+      - cache-state:/app/state
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
       timeout: 3s
-      retries: 5
+      retries: 12
+      start_period: 30s
 
   frontend:
     image: nginx:alpine
@@ -24,3 +29,6 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+volumes:
+  cache-state:

@@ -30,3 +30,6 @@ docs/architechture.md
 .claude
 claude.md
 skills-lock.json
+.cache/
+
+myFiles/

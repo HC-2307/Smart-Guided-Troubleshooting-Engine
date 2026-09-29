@@ -107,3 +107,19 @@ def test_metrics_endpoint_reports_cache_and_latency():
     assert snapshot["pipeline"]["latency_ms"]["cold"]["count"] == 1
     assert snapshot["cache"]["entries"] == 1
     assert snapshot["pipeline"]["est_cost_usd"] == 0.0
+
+
+def test_cors_exposes_trace_headers_to_the_frontend():
+    response = client.post(
+        "/v1/troubleshoot",
+        json={"query": "my phone battery drains fast"},
+        headers={"Origin": "http://localhost:5500"},
+    )
+    exposed = response.headers["access-control-expose-headers"]
+    for header in ("X-Cache", "X-Pipeline-Ms", "X-LLM-Calls", "X-Relevance", "X-Planner", "X-Request-ID"):
+        assert header in exposed
+
+
+def test_metrics_report_llm_provider():
+    llm = client.get("/v1/metrics").json()["llm"]
+    assert llm["provider"] in {"own_key", "free_tier", "offline"}

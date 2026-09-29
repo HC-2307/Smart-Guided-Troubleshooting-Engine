@@ -1705,60 +1705,75 @@
   "api_latency": {
     "cold_ms": {
       "count": 24,
-      "p50": 11.591,
-      "p95": 107.482,
-      "mean": 21.544
+      "p50": 53.066,
+      "p95": 271.946,
+      "mean": 88.413
     },
     "hit_ms": {
       "count": 46,
-      "p50": 4.833,
-      "p95": 9.441,
-      "mean": 5.63
+      "p50": 43.355,
+      "p95": 62.716,
+      "mean": 44.444
     },
     "server_metrics": {
       "pipeline": {
         "requests": 70,
-        "cache_hit_rate": 0.6714,
+        "cache_hit_rate": 0.6571,
         "latency_ms": {
           "hit": {
-            "count": 47,
-            "p50": 2.302,
-            "p95": 5.815
+            "count": 46,
+            "p50": 37.132,
+            "p95": 55.442
           },
           "cold": {
-            "count": 23,
-            "p50": 8.309,
-            "p95": 17.324
+            "count": 24,
+            "p50": 47.618,
+            "p95": 264.996
           }
         },
         "counters": {
           "requests": 70,
-          "cache_miss": 23,
+          "cache_miss": 24,
           "llm_calls": 0,
+          "relevance_semantic": 70,
+          "planner_m1": 24,
           "errors": 0,
-          "cache_variation": 16,
-          "cache_semantic": 31
+          "cache_semantic": 33,
+          "planner_none": 46,
+          "cache_variation": 13
         },
         "validation_codes": {},
         "est_cost_usd": 0.0
       },
       "cache": {
-        "entries": 23,
-        "keys": 216,
-        "hits": 47,
-        "misses": 23,
-        "hit_rate": 0.6714,
+        "entries": 24,
+        "keys": 199,
+        "hits": 46,
+        "misses": 24,
+        "hit_rate": 0.6571,
         "hits_by_tier": {
           "exact": 0,
-          "semantic": 31,
-          "variation": 16
+          "semantic": 33,
+          "variation": 13
         },
         "guard_rejections": {
           "domain": 0,
           "facet": 0
         },
+        "pinned": 0,
         "variations_filtered": 14,
         "evicted": 0
+      },
+      "dense_index": "ready",
+      "llm_guard": {
+        "open": false,
+        "consecutive_failures": 0,
+        "trips": 0
+      },
+      "startup": {},
+      "llm": {
+        "provider": "offline",
+        "model": null
       }
     }
   },
