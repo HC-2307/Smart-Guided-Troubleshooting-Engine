@@ -291,7 +291,7 @@ queries, concurrent load and live free-tier providers. The main defects found an
 | Similarity and cache | NumPy; custom catalog-IDF, trigram and facet logic; atomic JSON persistence |
 | Frontend | Plain HTML, CSS and JavaScript served by nginx |
 | Packaging | Docker, Docker Compose, start scripts for bash and PowerShell |
-| Testing | pytest (433 tests), benchmark, robustness, load and audit scripts |
+| Testing | pytest (435 tests), benchmark, robustness, load and audit scripts |
 | AI assistance during development | Antigravity AI (M1), Claude Code (M3); see `docs/LangAI3.0_AI_Disclosure.docx` |
 
 ## 7. Future work

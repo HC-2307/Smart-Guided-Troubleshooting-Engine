@@ -32,7 +32,7 @@ Two modes were measured:
 python -m pytest -q
 ```
 
-Result: **433 passed**, 0 failed (about 25 s). The suite removes every LLM setting before each test, so it
+Result: **435 passed**, 0 failed (about 30 s). The suite removes every LLM setting before each test, so it
 is deterministic and never makes a paid or network call.
 
 | Area | Test files (number of tests) |
@@ -45,7 +45,7 @@ is deterministic and never makes a paid or network call.
 | Settings (Configuration) plans and dense catalog index | `test_config_planner.py` (57), `test_catalog_index.py` (8) |
 | Reference-text parser and `no_siis_context` fallback | `test_reference_parser.py` (15), `test_no_context.py` (29) |
 | LLM guard: budget, circuit breaker, busy retry, LLM-free pre-warm | `test_llm_guard.py` (15) |
-| Start-up provider selection and free tier | `test_config.py` (8), `test_docker.py` (7) |
+| Start-up provider selection and free tier | `test_config.py` (10), `test_docker.py` (7) |
 | M1 enrichment and structuring | `test_enrichment.py` (14), `test_structure.py` (6), `test_prompt_regression.py` (21), `test_domain_plans.py` (25) |
 | M2 catalog, matching and sequencing | `test_catalog.py` (1), `test_matcher.py` (9), `test_sequence.py` (2) |
 | Adversarial inputs and concurrent load | `test_robustness.py` (32), `test_load.py` (4) |

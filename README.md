@@ -12,7 +12,8 @@ answer, get an empty result instead of an invented plan.
 |---|---|
 | API | `POST /v1/troubleshoot`, `GET /health`, `GET /v1/metrics` |
 | Demo UI | `http://localhost:5500` |
-| Documentation | [Technical report](docs/TECHNICAL_REPORT.md) · [Evaluation and test report](docs/EVALUATION.md) · [AI usage disclosure](docs/LangAI3.0_AI_Disclosure.docx) |
+| Documentation | [Technical report](docs/TECHNICAL_REPORT.md) · [Evaluation and test report](docs/EVALUATION.md) |
+| Submission material (in `docs/`) | [Demo video](docs/Demo.mp4) · [Presentation](docs/VIT_Indie_Submission.pptx) · [AI usage disclosure](docs/LangAI3.0_AI_Disclosure.docx) |
 
 ## Results at a glance
 
@@ -25,10 +26,10 @@ All measured on the submitted code. Details and commands are in [docs/EVALUATION
 | Deeplinks only from the catalog | 74/74 delivered deeplinks are catalog entries, 0 on/off polarity conflicts |
 | ≥ 80% cache hits on paraphrases | **80.4%** on held-out paraphrases, 0 wrong hits |
 | Cache hit P95 ≤ 300 ms | 81 ms under 16 concurrent users |
-| Cold path P95 ≤ 8 s | 6.5 s with the live free-tier LLM, 272 ms offline |
+| Cold path P95 ≤ 8 s | 6.5 s with the live free-tier LLM, 116 ms offline |
 | Refuse off-topic questions | 15/15 correct with the LLM, 29/30 offline |
 | Misspelt queries | 0 errors; a typo never changes the answer to the correctly spelt query (12/12) |
-| Tests | 433 passing |
+| Tests | 435 passing |
 
 ## Quick start
 
@@ -227,7 +228,7 @@ Returns:
 ## Tests and evaluation
 
 ```bash
-python -m pytest -q                              # 433 unit and integration tests, no network calls
+python -m pytest -q                              # 435 unit and integration tests, no network calls
 python evaluation/benchmark.py                   # M1 schema checks on the 20 official queries
 python evaluation/deeplink_audit.py              # every delivered deeplink checked against the catalog
 python evaluation/benchmark_m2.py                # M2 whole-query matcher benchmark
@@ -275,7 +276,7 @@ prompts/               LLM prompts for relevance, enrichment and structuring
 contracts/, schemas/   example payloads and JSON schemas passed between pipeline stages
 evaluation/            benchmarks, audits, labelled sets and recorded results
 tests/                 unit, API, integration, robustness and load tests
-docs/                  technical report, evaluation report, AI usage disclosure
+docs/                  technical report, evaluation report, demo video, presentation, AI usage disclosure
 start.sh, start.ps1    start-up scripts (ask for a key, then docker compose up)
 Dockerfile, docker-compose.yml
 ```

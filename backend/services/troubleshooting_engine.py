@@ -2,7 +2,7 @@
 
 Converts enriched technical queries (and optional Samsung SIIS internal knowledge documents)
 into structured, ordered troubleshooting plans conforming strictly to Samsung PRISM Theme 02 schema.
-Enforces strict 50-70 word descriptions starting with 'It will', 2-3 word titles, critical action ordering (last),
+Enforces strict 5-7 word descriptions starting with 'It will', 2-3 word titles, critical action ordering (last),
 and zero hallucinated deeplinks.
 """
 
