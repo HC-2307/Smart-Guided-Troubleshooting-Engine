@@ -8,28 +8,30 @@ deeplink from the official catalog, so the fix is one tap away. Paraphrased ques
 guarded semantic cache in milliseconds. Questions that are not about a device, or that are too vague to
 answer, get an empty result instead of an invented plan.
 
-| | |
-|---|---|
-| API | `POST /v1/troubleshoot`, `GET /health`, `GET /v1/metrics` |
-| Demo UI | `http://localhost:5500` |
-| Documentation | [Technical report](docs/TECHNICAL_REPORT.md) · [Evaluation and test report](docs/EVALUATION.md) |
-| Submission material (in `docs/`) | [Demo video](docs/Demo.mp4) · [Presentation](docs/VIT_Indie_Submission.pptx) · [AI usage disclosure](docs/LangAI3.0_AI_Disclosure.docx) |
+|                                   |                                                                                                                                        |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| API                               | `POST /v1/troubleshoot`, `GET /health`, `GET /v1/metrics`                                                                        |
+| Demo UI                           | `http://localhost:5500`                                                                                                              |
+| Documentation                     | [Technical report](docs/TECHNICAL_REPORT.md) · [Evaluation and test report](docs/EVALUATION.md)                                         |
+| Submission material (in`docs/`) | [Demo video](docs/Demo.mp4) · [Presentation](docs/VIT_Indie_Submission.pptx) · [AI usage disclosure](docs/LangAI3.0_AI_Disclosure.docx) |
+
+Demo Video  Google Dive Link: [drive.google.com/drive/folders/1z7bumbo7tQ-wC3LoJkZxBfV6BFYCVT3B?usp=sharing](https://drive.google.com/drive/folders/1z7bumbo7tQ-wC3LoJkZxBfV6BFYCVT3B?usp=sharing)
 
 ## Results at a glance
 
 All measured on the submitted code. Details and commands are in [docs/EVALUATION.md](docs/EVALUATION.md).
 
-| Theme 2 target | Result |
-|---|---|
-| JSON contract on the 20 official queries | 20/20 valid, 0 repairs needed |
-| Zero URL leakage | 0 URLs across all official, adversarial and prompt-injection tests |
-| Deeplinks only from the catalog | 74/74 delivered deeplinks are catalog entries, 0 on/off polarity conflicts |
-| ≥ 80% cache hits on paraphrases | **80.4%** on held-out paraphrases, 0 wrong hits |
-| Cache hit P95 ≤ 300 ms | 81 ms under 16 concurrent users |
-| Cold path P95 ≤ 8 s | 6.5 s with the live free-tier LLM, 116 ms offline |
-| Refuse off-topic questions | 15/15 correct with the LLM, 29/30 offline |
-| Misspelt queries | 0 errors; a typo never changes the answer to the correctly spelt query (12/12) |
-| Tests | 435 passing |
+| Theme 2 target                           | Result                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------ |
+| JSON contract on the 20 official queries | 20/20 valid, 0 repairs needed                                                  |
+| Zero URL leakage                         | 0 URLs across all official, adversarial and prompt-injection tests             |
+| Deeplinks only from the catalog          | 74/74 delivered deeplinks are catalog entries, 0 on/off polarity conflicts     |
+| ≥ 80% cache hits on paraphrases         | **80.4%** on held-out paraphrases, 0 wrong hits                          |
+| Cache hit P95 ≤ 300 ms                  | 81 ms under 16 concurrent users                                                |
+| Cold path P95 ≤ 8 s                     | 6.5 s with the live free-tier LLM, 116 ms offline                              |
+| Refuse off-topic questions               | 15/15 correct with the LLM, 29/30 offline                                      |
+| Misspelt queries                         | 0 errors; a typo never changes the answer to the correctly spelt query (12/12) |
+| Tests                                    | 435 passing                                                                    |
 
 ## Quick start
 
@@ -61,10 +63,10 @@ NVIDIA API key (free at build.nvidia.com; leave empty to run offline without an 
 The script then builds and starts two containers. The first build downloads dependencies and takes a few
 minutes.
 
-| Service | URL |
-|---|---|
-| Demo UI | http://localhost:5500 |
-| API | http://localhost:8000 (`/health`, `/v1/troubleshoot`, `/v1/metrics`) |
+| Service | URL                                                                        |
+| ------- | -------------------------------------------------------------------------- |
+| Demo UI | http://localhost:5500                                                      |
+| API     | http://localhost:8000 (`/health`, `/v1/troubleshoot`, `/v1/metrics`) |
 
 The UI waits until the API reports healthy. Stop everything with `Ctrl+C`, then `docker compose down`.
 
@@ -130,17 +132,17 @@ query ─► relevance gate ─► semantic cache ─► settings planner ─►
                M2 catalog deeplink resolution ─► M3 contract validator + URL gate ─► cache ─► JSON
 ```
 
-| Stage | Code | What it guarantees |
-|---|---|---|
-| Relevance gate | `backend/services/relevance.py` | Refuses non-device questions. Uses the LLM verdict when available, then embeddings against labelled examples, then word lists. |
-| Semantic cache | `cache.py`, `text_similarity.py` | Paraphrases hit the cache. Domain and facet guards stop wrong reuse (front vs rear camera, Wi-Fi vs mobile data, on vs off). Persisted to disk and pre-warmed with the 20 official queries. |
-| Settings planner | `config_planner.py`, `catalog_index.py` | "My phone time is in 24 hrs" gets a Configuration plan built only from the matching catalog entry. |
-| Query enrichment (M1) | `query_enrichment.py` | Domain, issue, technical query and 8–10 paraphrases, from the LLM or a deterministic fallback. |
-| Plan structuring (M1) | `troubleshooting_engine.py`, `reference_parser.py` | Plan grounded in the reference text. Without an LLM, steps are parsed from the article. |
-| Deeplink resolution (M2) | `m2_engine.py`, `action_matcher.py`, `deeplink_resolver.py` | Deeplinks copied only from `data/deeplinks.json`, matched on description / message / qna_description, never on the URI. |
-| Contract validator | `contract_validator.py`, `validator.py` | Enforces the graded schema in code, removes deeplinks with the wrong on/off polarity, orders actions from toggles to critical, and blocks any URL. |
-| LLM guard | `llm_guard.py` | Shared 5.5 s budget per request, circuit breaker and one retry on a busy provider, so requests stay under 8 s. |
-| Telemetry | `telemetry.py` | Request ID, stage timings, cache tier, LLM calls and cost on every request. |
+| Stage                    | Code                                                              | What it guarantees                                                                                                                                                                          |
+| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Relevance gate           | `backend/services/relevance.py`                                 | Refuses non-device questions. Uses the LLM verdict when available, then embeddings against labelled examples, then word lists.                                                              |
+| Semantic cache           | `cache.py`, `text_similarity.py`                              | Paraphrases hit the cache. Domain and facet guards stop wrong reuse (front vs rear camera, Wi-Fi vs mobile data, on vs off). Persisted to disk and pre-warmed with the 20 official queries. |
+| Settings planner         | `config_planner.py`, `catalog_index.py`                       | "My phone time is in 24 hrs" gets a Configuration plan built only from the matching catalog entry.                                                                                          |
+| Query enrichment (M1)    | `query_enrichment.py`                                           | Domain, issue, technical query and 8–10 paraphrases, from the LLM or a deterministic fallback.                                                                                             |
+| Plan structuring (M1)    | `troubleshooting_engine.py`, `reference_parser.py`            | Plan grounded in the reference text. Without an LLM, steps are parsed from the article.                                                                                                     |
+| Deeplink resolution (M2) | `m2_engine.py`, `action_matcher.py`, `deeplink_resolver.py` | Deeplinks copied only from`data/deeplinks.json`, matched on description / message / qna_description, never on the URI.                                                                    |
+| Contract validator       | `contract_validator.py`, `validator.py`                       | Enforces the graded schema in code, removes deeplinks with the wrong on/off polarity, orders actions from toggles to critical, and blocks any URL.                                          |
+| LLM guard                | `llm_guard.py`                                                  | Shared 5.5 s budget per request, circuit breaker and one retry on a busy provider, so requests stay under 8 s.                                                                              |
+| Telemetry                | `telemetry.py`                                                  | Request ID, stage timings, cache tier, LLM calls and cost on every request.                                                                                                                 |
 
 The full design, the research it builds on and what is new are in
 [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md).
@@ -189,23 +191,23 @@ Response (shortened):
 
 When the engine has nothing grounded to offer, it returns an empty `contexts` list and a `fallback`:
 
-| `fallback` | When |
-|---|---|
-| `no_match` | The question is not about a Galaxy device. |
-| `no_siis_context` | It is about a device, but there is no reference text and no recognisable topic (*"my galaxy has a problem"*). |
-| `validation_failed` | The finished plan still contained a link and was withheld. |
-| `internal_error` | Unexpected failure (HTTP 500), logged with the request ID. |
+| `fallback`          | When                                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `no_match`          | The question is not about a Galaxy device.                                                                      |
+| `no_siis_context`   | It is about a device, but there is no reference text and no recognisable topic (*"my galaxy has a problem"*). |
+| `validation_failed` | The finished plan still contained a link and was withheld.                                                      |
+| `internal_error`    | Unexpected failure (HTTP 500), logged with the request ID.                                                      |
 
 Response headers:
 
-| Header | Meaning |
-|---|---|
-| `X-Request-ID` | Trace ID. Send your own to correlate logs. |
-| `X-Cache` | `exact`, `semantic`, `variation`, `coalesced` or `miss` |
-| `X-Pipeline-Ms` | Server-side processing time |
-| `X-LLM-Calls`, `X-Est-Cost-USD` | LLM usage and estimated cost of this request |
-| `X-Relevance` | Which check decided relevance: `llm`, `semantic`, `keywords` or `skipped` |
-| `X-Planner` | Which planner built the plan: `catalog`, `m1` or `none` |
+| Header                              | Meaning                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `X-Request-ID`                    | Trace ID. Send your own to correlate logs.                                       |
+| `X-Cache`                         | `exact`, `semantic`, `variation`, `coalesced` or `miss`                |
+| `X-Pipeline-Ms`                   | Server-side processing time                                                      |
+| `X-LLM-Calls`, `X-Est-Cost-USD` | LLM usage and estimated cost of this request                                     |
+| `X-Relevance`                     | Which check decided relevance:`llm`, `semantic`, `keywords` or `skipped` |
+| `X-Planner`                       | Which planner built the plan:`catalog`, `m1` or `none`                     |
 
 A blank or oversized query, or an invalid `siis_response`, returns `422`.
 
@@ -283,12 +285,12 @@ Dockerfile, docker-compose.yml
 
 ## Team
 
-| Role | Member | Area |
-|---|---|---|
-| M1 | Arav | LLM query enrichment and plan structuring |
-| M2 | Geetika | Catalog and deeplink matching |
-| M3 | Harshit | Backend API, orchestration, cache, validation, Docker, integration tests |
-| M4 | Asmi | Frontend, evaluation, demo |
+| Role | Member  | Area                                                                     |
+| ---- | ------- | ------------------------------------------------------------------------ |
+| M1   | Arav    | LLM query enrichment and plan structuring                                |
+| M2   | Geetika | Catalog and deeplink matching                                            |
+| M3   | Harshit | Backend API, orchestration, cache, validation, Docker, integration tests |
+| M4   | Asmi    | Frontend, evaluation, demo                                               |
 
 AI assistance used during development is declared feature by feature in
 [docs/LangAI3.0_AI_Disclosure.docx](docs/LangAI3.0_AI_Disclosure.docx).
